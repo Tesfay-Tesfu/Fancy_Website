@@ -10,9 +10,12 @@ function Header() {
   const [suggestions, setSuggestions] = useState([]);
   const [showDropdown, setShowDropdown] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [userName, setUserName] = useState('');
   const navigate = useNavigate();
   const searchTimeoutRef = useRef(null);
   const dropdownRef = useRef(null);
+  const userMenuRef = useRef(null);
 
   const handleSearchSubmit = (e) => {
     e.preventDefault();
@@ -20,6 +23,12 @@ function Header() {
       navigate(`/shop?search=${encodeURIComponent(searchQuery.trim())}`);
       setShowDropdown(false);
     }
+  };
+
+  const handleSuggestionClick = (product) => {
+    navigate(`/products/${product.slug}`);
+    setShowDropdown(false);
+    setSearchQuery('');
   };
 
   const handleInputChange = (e) => {
@@ -51,12 +60,16 @@ function Header() {
     }
   };
 
-  const handleSuggestionClick = (suggestion) => {
-    const destinationSlug = suggestion.slug || suggestion.id
-    navigate(`/products/${destinationSlug}`)
-    setShowDropdown(false)
-    setSearchQuery(suggestion.name)
-  }
+  const handleLogout = () => {
+    localStorage.removeItem('user_id');
+    localStorage.removeItem('username');
+    localStorage.removeItem('email');
+    localStorage.removeItem('first_name');
+    localStorage.removeItem('last_name');
+    setIsLoggedIn(false);
+    setUserName('');
+    navigate('/');
+  };
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -67,6 +80,19 @@ function Header() {
 
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  useEffect(() => {
+    // Check if user is logged in
+    const userId = localStorage.getItem('user_id');
+    const firstName = localStorage.getItem('first_name');
+    if (userId && firstName) {
+      setIsLoggedIn(true);
+      setUserName(firstName);
+    } else {
+      setIsLoggedIn(false);
+      setUserName('');
+    }
   }, []);
 
   return (
@@ -170,7 +196,16 @@ function Header() {
             </button>
 
             {/* User */}
-            <button className="p-2 hover:bg-amber-50 rounded-full">
+            <button
+              onClick={() => {
+                if (isLoggedIn) {
+                  navigate('/dashboard');
+                } else {
+                  navigate('/login');
+                }
+              }}
+              className="p-2 hover:bg-amber-50 rounded-full flex items-center gap-2"
+            >
               <User size={20} />
             </button>
 

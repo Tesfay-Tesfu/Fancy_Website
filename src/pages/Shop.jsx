@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 import { fetchProducts, fetchCategories, fetchSizeAttributes, fetchFlavourAttributes } from '../services/woocommerce'
 
 function Shop() {
+  const [searchParams] = useSearchParams()
   const [products, setProducts] = useState([])
   const [categories, setCategories] = useState([])
   const [currentPage, setCurrentPage] = useState(1)
@@ -20,6 +21,7 @@ function Shop() {
   const [maxPriceInput, setMaxPriceInput] = useState(80)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
+  const searchQuery = searchParams.get('search') || ''
 
   useEffect(() => {
     const loadCategories = async () => {
@@ -52,6 +54,10 @@ function Shop() {
   }, [selectedSizes, selectedFlavours])
 
   useEffect(() => {
+    setCurrentPage(1) // Reset to first page when search changes
+  }, [searchQuery])
+
+  useEffect(() => {
     const loadProducts = async () => {
       try {
         setLoading(true)
@@ -71,7 +77,8 @@ function Shop() {
           selectedCategories,
           minPrice,
           maxPrice,
-          variationFilters
+          variationFilters,
+          searchQuery
         )
         setProducts(data)
         setTotalProducts(total)
@@ -83,7 +90,7 @@ function Shop() {
       }
     }
     loadProducts()
-  }, [currentPage, sortBy, selectedCategories, minPrice, maxPrice, selectedSizes, selectedFlavours])
+  }, [currentPage, sortBy, selectedCategories, minPrice, maxPrice, selectedSizes, selectedFlavours, searchQuery])
 
   const handleSortChange = (newSortBy) => {
     setSortBy(newSortBy)
@@ -377,7 +384,9 @@ function Shop() {
         <section className="space-y-6">
           <div className="flex flex-col gap-4 rounded-3xl bg-white p-5 shadow-sm ring-1 ring-slate-200 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <p className="text-sm font-medium text-slate-500">Showing</p>
+              <p className="text-sm font-medium text-slate-500">
+                {searchQuery ? `Search results for "${searchQuery}"` : 'Showing'}
+              </p>
               <p className="mt-1 text-2xl font-semibold text-slate-900">{displayProducts.length} bakery items</p>
             </div>
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center">

@@ -1,8 +1,12 @@
 import Slideshow from '../components/Slideshow'
 import Categories from '../components/Categories'
 import FeaturedCakes from '../components/FeaturedCakes'
+import { useEffect } from 'react'
 
 function Home() {
+  useEffect(() => {
+    document.title = "Nano Backery E-commerce";
+  }, []);
   return (
     <>
       <Slideshow />

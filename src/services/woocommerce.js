@@ -15,6 +15,8 @@ export const endpoints = {
   signatureCakes: `${config.baseURL}/wp-json/wc/v3/products?category=16`, 
   occasionCakes: `${config.baseURL}/wp-json/wc/v3/products?category=62`,
   themedCakes: `${config.baseURL}/wp-json/wc/v3/products?category=63`,
+  signup: `${config.baseURL}/wp-json/wc/v3/customers`,
+  login: `${config.baseURL}/wp-json/wc/v3/login`,
 }
 
 // Helper function to create authentication headers
@@ -246,6 +248,71 @@ export const fetchSearchSuggestions = async (query, limit = 5) => {
     return data
   } catch (error) {
     console.error('Error fetching search suggestions:', error)
+    throw error
+  }
+}
+
+// Create a new customer (signup)
+export const createCustomer = async (customerData) => {
+  try {
+    const response = await fetch(endpoints.signup, {
+      method: 'POST',
+      headers: getAuthHeaders(),
+      body: JSON.stringify(customerData),
+    })
+
+    const data = await response.json()
+
+    if (!response.ok) {
+      // 🔥 show real WooCommerce error
+      throw new Error(data.message || 'Something went wrong')
+    }
+
+    return data
+
+  } catch (error) {
+    console.error('Error creating customer:', error)
+    throw error
+  }
+}
+
+// Login customer (assuming JWT auth plugin is installed)
+export const loginCustomer = async (username, password) => {
+  try {
+    const response = await fetch(endpoints.login, {
+      method: 'POST',
+      headers: getAuthHeaders(),
+      body: JSON.stringify({
+        username,
+        password,
+      }),
+    })
+
+    const data = await response.json()
+
+    // ❌ Handle backend error (401, 400, etc.)
+    if (!response.ok) {
+      throw new Error(data.message || 'Invalid credentials')
+    }
+
+    // ✅ Success response (status: 200)
+    if (data.status === 200 && data.user) {
+      const user = data.user
+
+      // 💾 Save to localStorage
+      localStorage.setItem('user_id', user.id)
+      localStorage.setItem('username', user.username)
+      localStorage.setItem('email', user.email)
+      localStorage.setItem('first_name', user.first_name)
+      localStorage.setItem('last_name', user.last_name)
+
+      return data
+    }else{
+      throw new Error(data.message || 'Unexpected response format')
+    }
+
+  } catch (error) {
+    console.error('Error logging in:', error)
     throw error
   }
 }

@@ -4,6 +4,9 @@ import Footer from './components/Footer'
 import Home from './pages/Home'
 import Shop from './pages/Shop'
 import SingleProduct from './pages/SingleProduct'
+import Signup from './pages/Signup'
+import Login from './pages/Login'
+import Dashboard from './pages/Dashboard'
 
 function App() {
   return (
@@ -15,6 +18,9 @@ function App() {
           <Route path="/" element={<Home />} />
           <Route path="/shop" element={<Shop />} />
           <Route path="/products/:productSlug" element={<SingleProduct />} />
+          <Route path="/signup" element={<Signup />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/dashboard" element={<Dashboard />} />
         </Routes>
 
         <Footer />
