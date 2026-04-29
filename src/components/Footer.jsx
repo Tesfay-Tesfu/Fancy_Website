@@ -1,5 +1,5 @@
 import React from 'react';
-import logo from '../assets/b_logo.png';
+import logo from '../assets/fancy_logo_v3.png';
 import { Phone, Clock, Mail, MapPin } from 'lucide-react';
 import { useNavigate } from "react-router-dom";
 
@@ -16,7 +16,7 @@ function Footer() {
                     <div className="space-y-5">
                         <div className="flex items-center gap-3">
                             <img src={logo} alt="Nano Bake House" className="h-14 w-14 rounded-xl shadow-md" />
-                            <h2 className="text-xl font-bold text-white">Nano Bake House</h2>
+                            <h2 className="text-xl font-bold text-white">FANCY CAKES PATISSERIE</h2>
                         </div>
 
                         <p className="text-sm text-amber-200/80">
@@ -26,15 +26,15 @@ function Footer() {
                         <div className="space-y-2">
                             <div className="flex items-center gap-2">
                                 <Phone size={18} />
-                                <span className="text-sm">020 3375 3310</span>
+                                <span className="text-sm">+1 240-797-8542</span>
                             </div>
                             <div className="flex items-center gap-2">
                                 <Mail size={18} />
-                                <span className="text-sm">info@nanobake.com</span>
+                                <span className="text-sm">info@fancycake.com</span>
                             </div>
                             <div className="flex items-center gap-2">
                                 <MapPin size={18} />
-                                <span className="text-sm">Addis Ababa, Ethiopia</span>
+                                <span className="text-sm">7513, Maple Ave</span>
                             </div>
                         </div>
                     </div>

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Search, ShoppingBag, User, Menu, X, Heart } from 'lucide-react';
-import logo from '../assets/b_logo.png';
+import logo from '../assets/fancy_logo_v3.png';
 import { Link, useNavigate } from 'react-router-dom';
 import { fetchSearchSuggestions } from '../services/woocommerce';
 
@@ -113,11 +113,11 @@ function Header() {
             <Link to="/" className="flex items-center gap-3 cursor-pointer">
               <img
                 src={logo}
-                alt="Nano Bake House"
-                className="h-12 w-12 md:h-14 md:w-14 rounded-xl shadow-sm"
+                alt="FANCY CAKES PATISSERIE"
+                className="h-14 w-14 md:h-14 md:w-14 rounded-xl shadow-sm"
               />
               <h1 className="text-xl md:text-2xl font-bold text-amber-950 whitespace-nowrap">
-                Nano Bake House
+                FANCY CAKES PATISSERIE
               </h1>
             </Link>
           </div>
