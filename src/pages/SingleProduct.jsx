@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
-import { fetchProductBySlug, fetchProductsByIds } from '../services/woocommerce'
-import { Home, ShoppingBag } from 'lucide-react'
+import { fetchProductBySlug, fetchProductsByIds, fetchProductVariations, fetchAttributeTerms } from '../services/woocommerce'
+import { Home, ShoppingBag, CheckCircle, AlertCircle } from 'lucide-react'
+import { addToCart, buildVariationDescription } from '../utils/cart'
 
 function SingleProduct() {
     const { productSlug } = useParams()
@@ -12,13 +13,118 @@ function SingleProduct() {
     const [error, setError] = useState(null)
     const [activeTab, setActiveTab] = useState('description')
     const [relatedProducts, setRelatedProducts] = useState([])
+    const [variations, setVariations] = useState([])
+    const [currentPrice, setCurrentPrice] = useState(null)
+    const [checkedAddons, setCheckedAddons] = useState({}) // { fieldId: { slug: bool } }
+    const [attributeErrors, setAttributeErrors] = useState({}) // { attrName: true }
+    const [attributeTerms, setAttributeTerms] = useState({}) // { attrId: [{ name, description(color) }] }
+    const [cartToast, setCartToast] = useState(null) // 'added' | 'duplicate' | null
 
-    // Handle attribute change
+    // Handle attribute change — clear error on selection
     const handleAttributeChange = (name, value) => {
         setSelectedAttributes((prev) => ({
             ...prev,
             [name]: value
         }))
+        if (value) {
+            setAttributeErrors((prev) => ({ ...prev, [name]: false }))
+        }
+    }
+
+    // Validate all attributes and handle add to cart
+    const handleAddToCart = () => {
+        // Validate required attributes for variable products
+        if (product?.type === 'variable' && product.attributes?.length) {
+            const errors = {}
+            product.attributes.forEach((attr) => {
+                if (!selectedAttributes[attr.name]) {
+                    errors[attr.name] = true
+                }
+            })
+            if (Object.keys(errors).length > 0) {
+                setAttributeErrors(errors)
+                return
+            }
+        }
+
+        setAttributeErrors({})
+
+        // Find matching variation id
+        let variationId = null
+        if (product.type === 'variable' && variations.length > 0) {
+            const match = variations.find((v) =>
+                v.attributes.every(
+                    (a) => selectedAttributes[a.name] === a.option
+                )
+            )
+            variationId = match?.id || null
+        }
+
+        // Build addon fields for description
+        const addonFields = getAddonFields(product.meta_data)
+
+        // Build variation description string
+        const variationDescription = buildVariationDescription(
+            selectedAttributes,
+            checkedAddons,
+            addonFields
+        )
+
+        const item = {
+            name: product.name,
+            product_id: product.id,
+            variation_id: variationId,
+            quantity: 1,
+            total_price: parseFloat(currentPrice) || 0,
+            image_url: product.images?.[0]?.src || '',
+            permalink: `/products/${product.slug}`,
+            variation_description: variationDescription,
+        }
+
+        const result = addToCart(item)
+
+        if (result.duplicate) {
+            setCartToast('duplicate')
+        } else {
+            setCartToast('added')
+        }
+
+        // Auto-hide toast after 3s
+        setTimeout(() => setCartToast(null), 3000)
+    }
+
+    // Handle addon checkbox toggle
+    const handleAddonToggle = (fieldId, slug) => {
+        setCheckedAddons((prev) => {
+            const fieldChecks = prev[fieldId] || {}
+            return {
+                ...prev,
+                [fieldId]: {
+                    ...fieldChecks,
+                    [slug]: !fieldChecks[slug]
+                }
+            }
+        })
+    }
+
+    // Extract wapf addon fields from meta_data
+    const getAddonFields = (metaData = []) => {
+        const wapfMeta = metaData.find((m) => m.key === '_wapf_fieldgroup')
+        if (!wapfMeta?.value?.fields) return []
+        return wapfMeta.value.fields.filter(
+            (f) => f.type === 'checkboxes' && f.options?.choices?.length > 0
+        )
+    }
+
+    // Check if a string looks like a hex color code
+    const isColorCode = (str = '') => /^#([0-9A-Fa-f]{3}|[0-9A-Fa-f]{6})$/.test(str.trim())
+
+    // Get color hex for an option name from fetched terms
+    const getColorForOption = (attrId, optionName) => {
+        const terms = attributeTerms[attrId] || []
+        const term = terms.find((t) => t.name.toLowerCase() === optionName.toLowerCase())
+        const desc = term?.description?.trim()
+        return desc && isColorCode(desc) ? desc : null
     }
 
     useEffect(() => {
@@ -42,6 +148,40 @@ function SingleProduct() {
                     data?.images?.[0]?.src || 'https://via.placeholder.com/600'
                 )
 
+                // Fetch variations if product is variable
+                if (data.type === 'variable') {
+                    try {
+                        const vars = await fetchProductVariations(data.id)
+                        setVariations(vars)
+                        // Set default price to product price
+                        setCurrentPrice(data.price)
+                    } catch (err) {
+                        console.error('Error fetching variations:', err)
+                        setCurrentPrice(data.price)
+                    }
+                } else {
+                    // For simple products, use product price
+                    setCurrentPrice(data.price)
+                }
+
+                // Fetch attribute terms (for color codes in descriptions)
+                if (data.attributes?.length > 0) {
+                    try {
+                        const termsMap = {}
+                        await Promise.all(
+                            data.attributes.map(async (attr) => {
+                                if (attr.id) {
+                                    const terms = await fetchAttributeTerms(attr.id)
+                                    termsMap[attr.id] = terms
+                                }
+                            })
+                        )
+                        setAttributeTerms(termsMap)
+                    } catch (err) {
+                        console.error('Error fetching attribute terms:', err)
+                    }
+                }
+
                 // Fetch related products if related_ids exist
                 if (data.related_ids && data.related_ids.length > 0) {
                     try {
@@ -61,6 +201,25 @@ function SingleProduct() {
 
         loadProduct()
     }, [productSlug])
+
+    // Update price when size attribute changes for variable products
+    useEffect(() => {
+        if (product?.type === 'variable' && variations.length > 0) {
+            const selectedSize = selectedAttributes['Size']
+            if (selectedSize) {
+                // Find any variation with the selected size
+                const matchingVariation = variations.find(variation => {
+                    return variation.attributes.some(attr => attr.name === 'Size' && attr.option === selectedSize)
+                })
+                if (matchingVariation) {
+                    setCurrentPrice(matchingVariation.price)
+                }
+            } else {
+                // If no size selected, set to default product price
+                setCurrentPrice(product.price)
+            }
+        }
+    }, [selectedAttributes, variations, product])
 
     if (loading) {
         return (
@@ -94,9 +253,7 @@ function SingleProduct() {
 
     if (!product) return null
 
-    const price = product.price ? `$${product.price}` : 'Price unavailable'
-    const description =
-        product.description || product.short_description || ''
+    const price = currentPrice ? `$${currentPrice}` : 'Price unavailable'
 
     return (
         <main className="mx-auto max-w-6xl px-6 pb-16 pt-6 sm:px-8">
@@ -179,13 +336,6 @@ function SingleProduct() {
                         </div>
                     </div>
 
-                    {/* Price */}
-                    <div>
-                        <p className="text-2xl font-semibold text-slate-900">
-                            {price}
-                        </p>
-                    </div>
-
                     {/* Description */}
                     <div>
                         <div
@@ -194,59 +344,145 @@ function SingleProduct() {
                         />
                     </div>
 
+                    {/* Price */}
+                    <div>
+                        <p className="text-2xl font-semibold text-slate-900">
+                            {price}
+                        </p>
+                    </div>
+
                     {/* ATTRIBUTES DROPDOWNS */}
                     {product.attributes?.length > 0 && (
                         <div className="space-y-4">
 
-                            {product.attributes.map((attr) => (
-                                <div key={attr.id}>
-                                    <label className="text-sm font-semibold text-slate-700">
-                                        {attr.name}
-                                    </label>
+                            {product.attributes.map((attr) => {
+                                // Check if any option in this attribute has a color code
+                                const hasColors = attr.options.some(
+                                    (opt) => getColorForOption(attr.id, opt) !== null
+                                )
 
-                                    <select
-                                        className="mt-2 w-full rounded-xl border border-slate-300 px-3 py-2 text-sm focus:border-amber-500 focus:outline-none"
-                                        value={selectedAttributes[attr.name] || ''}
-                                        onChange={(e) =>
-                                            handleAttributeChange(attr.name, e.target.value)
-                                        }
-                                    >
-                                        <option value="">Select {attr.name}</option>
+                                return (
+                                    <div key={attr.id}>
+                                        <label className="text-sm font-semibold text-slate-700">
+                                            {attr.name}
+                                            <span className="ml-1 text-red-500">*</span>
+                                            {selectedAttributes[attr.name] && (
+                                                <span className="ml-2 font-normal text-slate-500">
+                                                    — {selectedAttributes[attr.name]}
+                                                </span>
+                                            )}
+                                        </label>
 
-                                        {attr.options.map((option, index) => (
-                                            <option key={index} value={option}>
-                                                {option}
-                                            </option>
-                                        ))}
-                                    </select>
-                                </div>
-                            ))}
+                                        {hasColors ? (
+                                            /* Color swatch picker */
+                                            <div className="mt-2 flex flex-wrap gap-2">
+                                                {attr.options.map((option, index) => {
+                                                    const color = getColorForOption(attr.id, option)
+                                                    const isSelected = selectedAttributes[attr.name] === option
+                                                    return (
+                                                        <button
+                                                            key={index}
+                                                            type="button"
+                                                            title={option}
+                                                            onClick={() => handleAttributeChange(attr.name, option)}
+                                                            className={`relative h-9 w-9 rounded-full border-2 transition focus:outline-none
+                                                                ${isSelected
+                                                                    ? 'border-amber-600 scale-110 shadow-md'
+                                                                    : 'border-slate-300 hover:border-slate-500'
+                                                                }`}
+                                                            style={{ backgroundColor: color || '#ccc' }}
+                                                        >
+                                                            {isSelected && (
+                                                                <span className="absolute inset-0 flex items-center justify-center text-white text-xs font-bold drop-shadow">
+                                                                    ✓
+                                                                </span>
+                                                            )}
+                                                        </button>
+                                                    )
+                                                })}
+                                            </div>
+                                        ) : (
+                                            /* Regular dropdown */
+                                            <select
+                                                className={`mt-2 w-full rounded-xl border px-3 py-2 text-sm focus:outline-none transition
+                                                    ${attributeErrors[attr.name]
+                                                        ? 'border-red-500 bg-red-50 focus:border-red-500'
+                                                        : 'border-slate-300 focus:border-amber-500'
+                                                    }`}
+                                                value={selectedAttributes[attr.name] || ''}
+                                                onChange={(e) =>
+                                                    handleAttributeChange(attr.name, e.target.value)
+                                                }
+                                            >
+                                                <option value="">Select {attr.name}</option>
+                                                {attr.options.map((option, index) => (
+                                                    <option key={index} value={option}>
+                                                        {option}
+                                                    </option>
+                                                ))}
+                                            </select>
+                                        )}
+
+                                        {attributeErrors[attr.name] && (
+                                            <p className="mt-1 text-xs text-red-500">
+                                                Please select a {attr.name}.
+                                            </p>
+                                        )}
+                                    </div>
+                                )
+                            })}
 
                         </div>
                     )}
 
-                    {/* Info cards */}
-                    <div className="grid gap-3 sm:grid-cols-2">
-                        <div className="rounded-3xl bg-slate-50 p-5">
-                            <p className="text-sm text-slate-500">Rating</p>
-                            <p className="mt-2 text-lg font-semibold text-slate-900">
-                                ⭐ {product.average_rating || '0'}
-                            </p>
+                    {/* ADDON FIELDS (from meta_data _wapf_fieldgroup) */}
+                    {getAddonFields(product.meta_data).map((field) => (
+                        <div key={field.id} className="space-y-2">
+                            <label className="text-sm font-semibold text-slate-700">
+                                {field.label}
+                            </label>
+                            {field.description && (
+                                <p className="text-xs text-slate-500">{field.description}</p>
+                            )}
+                            <div className="space-y-2">
+                                {field.options.choices.map((choice) => (
+                                    <label
+                                        key={choice.slug}
+                                        className="flex items-center gap-3 cursor-pointer rounded-xl border border-slate-200 px-3 py-2 hover:border-amber-400 hover:bg-amber-50 transition"
+                                    >
+                                        <input
+                                            type="checkbox"
+                                            checked={!!checkedAddons[field.id]?.[choice.slug]}
+                                            onChange={() => handleAddonToggle(field.id, choice.slug)}
+                                            className="h-4 w-4 accent-amber-600 cursor-pointer"
+                                        />
+                                        <span className="text-sm text-slate-700">{choice.label}</span>
+                                    </label>
+                                ))}
+                            </div>
                         </div>
-
-                        <div className="rounded-3xl bg-slate-50 p-5">
-                            <p className="text-sm text-slate-500">Availability</p>
-                            <p className="mt-2 text-lg font-semibold text-slate-900">
-                                {product.stock_status === 'instock'
-                                    ? 'In stock'
-                                    : 'Out of stock'}
-                            </p>
-                        </div>
-                    </div>
+                    ))}
 
                     {/* Buttons */}
-                    <div className="space-y-4">
-                        <button className="w-full rounded-full bg-amber-600 px-5 py-3 text-sm font-semibold text-white hover:bg-amber-700 transition">
+                    <div className="space-y-3">
+
+                        {/* Toast feedback */}
+                        {cartToast === 'added' && (
+                            <div className="flex items-center gap-2 rounded-xl bg-green-50 border border-green-200 px-4 py-3 text-sm text-green-700">
+                                <CheckCircle size={16} className="shrink-0" />
+                                <span>Item added to cart successfully!</span>
+                            </div>
+                        )}
+                        {cartToast === 'duplicate' && (
+                            <div className="flex items-center gap-2 rounded-xl bg-amber-50 border border-amber-200 px-4 py-3 text-sm text-amber-700">
+                                <AlertCircle size={16} className="shrink-0" />
+                                <span>This item with the same options is already in your cart.</span>
+                            </div>
+                        )}
+
+                        <button
+                            onClick={handleAddToCart}
+                            className="w-full rounded-full bg-amber-600 px-5 py-3 text-sm font-semibold text-white hover:bg-amber-700 transition">
                             Add to cart
                         </button>
 

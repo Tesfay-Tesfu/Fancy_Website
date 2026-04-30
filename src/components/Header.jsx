@@ -1,8 +1,9 @@
-import React, { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Search, ShoppingBag, User, Menu, X, Heart } from 'lucide-react';
 import logo from '../assets/fancy_logo_v3.png';
 import { Link, useNavigate } from 'react-router-dom';
 import { fetchSearchSuggestions } from '../services/woocommerce';
+import { getCartCount } from '../utils/cart';
 
 function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -11,11 +12,10 @@ function Header() {
   const [showDropdown, setShowDropdown] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [userName, setUserName] = useState('');
+  const [cartCount, setCartCount] = useState(getCartCount());
   const navigate = useNavigate();
   const searchTimeoutRef = useRef(null);
   const dropdownRef = useRef(null);
-  const userMenuRef = useRef(null);
 
   const handleSearchSubmit = (e) => {
     e.preventDefault();
@@ -67,9 +67,15 @@ function Header() {
     localStorage.removeItem('first_name');
     localStorage.removeItem('last_name');
     setIsLoggedIn(false);
-    setUserName('');
     navigate('/');
   };
+
+  // Sync cart count on mount and whenever cart-updated fires
+  useEffect(() => {
+    const sync = () => setCartCount(getCartCount());
+    window.addEventListener('cart-updated', sync);
+    return () => window.removeEventListener('cart-updated', sync);
+  }, []);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -88,10 +94,8 @@ function Header() {
     const firstName = localStorage.getItem('first_name');
     if (userId && firstName) {
       setIsLoggedIn(true);
-      setUserName(firstName);
     } else {
       setIsLoggedIn(false);
-      setUserName('');
     }
   }, []);
 
@@ -210,12 +214,14 @@ function Header() {
             </button>
 
             {/* Cart */}
-            <button className="relative p-2 hover:bg-amber-50 rounded-full">
+            <Link to="/cart" className="relative p-2 hover:bg-amber-50 rounded-full">
               <ShoppingBag size={22} />
-              <span className="absolute -top-1 -right-1 h-5 w-5 bg-amber-600 text-white text-[11px] font-bold rounded-full flex items-center justify-center shadow">
-                3
-              </span>
-            </button>
+              {cartCount > 0 && (
+                <span className="absolute -top-1 -right-1 h-5 w-5 bg-amber-600 text-white text-[11px] font-bold rounded-full flex items-center justify-center shadow">
+                  {cartCount > 99 ? '99+' : cartCount}
+                </span>
+              )}
+            </Link>
 
             {/* CTA */}
             <button className="hidden md:block ml-2 bg-amber-600 hover:bg-amber-700 text-white px-4 py-2 rounded-full text-sm font-semibold transition"

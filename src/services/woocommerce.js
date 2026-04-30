@@ -223,9 +223,27 @@ export const fetchFlavourAttributes = async () => {
   }
 }
 
-export default config
+// Fetch product variations from WooCommerce API
+export const fetchProductVariations = async (productId) => {
+  try {
+    const url = `${endpoints.products}/${productId}/variations`
 
-// Fetch search suggestions from WooCommerce API
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: getAuthHeaders(),
+    })
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`)
+    }
+
+    const data = await response.json()
+    return data
+  } catch (error) {
+    console.error('Error fetching product variations:', error)
+    throw error
+  }
+}
 export const fetchSearchSuggestions = async (query, limit = 5) => {
   if (!query || query.trim().length < 2) return []
 
@@ -313,6 +331,29 @@ export const loginCustomer = async (username, password) => {
 
   } catch (error) {
     console.error('Error logging in:', error)
+    throw error
+  }
+}
+
+// Fetch terms for any product attribute by attribute ID
+export const fetchAttributeTerms = async (attributeId) => {
+  try {
+    const url = new URL(`${config.baseURL}/wp-json/wc/v3/products/attributes/${attributeId}/terms`)
+    url.searchParams.set('per_page', 100)
+
+    const response = await fetch(url.toString(), {
+      method: 'GET',
+      headers: getAuthHeaders(),
+    })
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`)
+    }
+
+    const data = await response.json()
+    return data
+  } catch (error) {
+    console.error('Error fetching attribute terms:', error)
     throw error
   }
 }
