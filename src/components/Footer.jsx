@@ -1,4 +1,3 @@
-import React from 'react';
 import logo from '../assets/fancy_logo_v3.png';
 import { Phone, Clock, Mail, MapPin } from 'lucide-react';
 import { useNavigate } from "react-router-dom";
