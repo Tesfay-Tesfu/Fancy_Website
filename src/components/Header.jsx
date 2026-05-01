@@ -4,6 +4,7 @@ import logo from '../assets/fancy_logo_v3.png';
 import { Link, useNavigate } from 'react-router-dom';
 import { fetchSearchSuggestions } from '../services/woocommerce';
 import { getCartCount } from '../utils/cart';
+import { getWishlistCount } from '../utils/wishlist';
 
 function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -13,6 +14,7 @@ function Header() {
   const [isSearching, setIsSearching] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [cartCount, setCartCount] = useState(getCartCount());
+  const [wishlistCount, setWishlistCount] = useState(getWishlistCount());
   const navigate = useNavigate();
   const searchTimeoutRef = useRef(null);
   const dropdownRef = useRef(null);
@@ -75,6 +77,13 @@ function Header() {
     const sync = () => setCartCount(getCartCount());
     window.addEventListener('cart-updated', sync);
     return () => window.removeEventListener('cart-updated', sync);
+  }, []);
+
+  // Sync wishlist count
+  useEffect(() => {
+    const sync = () => setWishlistCount(getWishlistCount());
+    window.addEventListener('wishlist-updated', sync);
+    return () => window.removeEventListener('wishlist-updated', sync);
   }, []);
 
   useEffect(() => {
@@ -195,15 +204,20 @@ function Header() {
           <div className="flex items-center gap-1">
 
             {/* Wishlist */}
-            <button className="p-2 hover:bg-amber-50 rounded-full">
+            <Link to="/wishlist" className="relative p-2 hover:bg-amber-50 rounded-full">
               <Heart size={20} />
-            </button>
+              {wishlistCount > 0 && (
+                <span className="absolute -top-1 -right-1 h-5 w-5 bg-pink-500 text-white text-[11px] font-bold rounded-full flex items-center justify-center shadow">
+                  {wishlistCount > 99 ? '99+' : wishlistCount}
+                </span>
+              )}
+            </Link>
 
             {/* User */}
             <button
               onClick={() => {
                 if (isLoggedIn) {
-                  navigate('/dashboard');
+                  navigate('/dashboard/profile');
                 } else {
                   navigate('/login');
                 }

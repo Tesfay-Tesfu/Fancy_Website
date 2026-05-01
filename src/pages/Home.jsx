@@ -5,7 +5,7 @@ import { useEffect } from 'react'
 
 function Home() {
   useEffect(() => {
-    document.title = "Nano Backery E-commerce";
+    document.title = "Fancy Cakes Patisserie";
   }, []);
   return (
     <>

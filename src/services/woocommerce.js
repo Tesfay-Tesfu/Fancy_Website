@@ -357,3 +357,159 @@ export const fetchAttributeTerms = async (attributeId) => {
     throw error
   }
 }
+
+// Update customer billing and/or shipping address
+export const updateCustomerAddress = async (customerId, payload) => {
+  try {
+    const url = `${endpoints.signup}/${customerId}`
+
+    const response = await fetch(url, {
+      method: 'PUT',
+      headers: getAuthHeaders(),
+      body: JSON.stringify(payload),
+    })
+
+    const data = await response.json()
+
+    if (!response.ok) {
+      throw new Error(data.message || 'Failed to update address.')
+    }
+
+    return data
+  } catch (error) {
+    console.error('Error updating customer address:', error)
+    throw error
+  }
+}
+
+// Fetch shipping methods for zone 1
+export const fetchShippingMethods = async () => {
+  try {
+    const url = `${config.baseURL}/wp-json/wc/v3/shipping/zones/1/methods`
+    const response = await fetch(url, { method: 'GET', headers: getAuthHeaders() })
+    const data = await response.json()
+    if (!response.ok) throw new Error(data.message || 'Failed to fetch shipping methods.')
+    return data
+  } catch (error) {
+    console.error('Error fetching shipping methods:', error)
+    throw error
+  }
+}
+
+// Fetch payment gateways
+export const fetchPaymentGateways = async () => {
+  try {
+    const url = `${config.baseURL}/wp-json/wc/v3/payment_gateways`
+    const response = await fetch(url, { method: 'GET', headers: getAuthHeaders() })
+    const data = await response.json()
+    if (!response.ok) throw new Error(data.message || 'Failed to fetch payment gateways.')
+    // Return only enabled gateways
+    return data.filter((g) => g.enabled)
+  } catch (error) {
+    console.error('Error fetching payment gateways:', error)
+    throw error
+  }
+}
+
+// Place a WooCommerce order
+export const placeOrder = async (orderPayload) => {
+  try {
+    const response = await fetch(endpoints.orders, {
+      method: 'POST',
+      headers: getAuthHeaders(),
+      body: JSON.stringify(orderPayload),
+    })
+    const data = await response.json()
+    if (!response.ok) throw new Error(data.message || 'Failed to place order.')
+    return data
+  } catch (error) {
+    console.error('Error placing order:', error)
+    throw error
+  }
+}
+
+// Fetch orders for a specific customer with pagination, search and status filter
+export const fetchCustomerOrders = async ({
+  customerId,
+  page = 1,
+  perPage = 10,
+  status = 'any',
+  search = '',
+}) => {
+  try {
+    const url = new URL(`${config.baseURL}/wp-json/wc/v3/orders`)
+    url.searchParams.set('customer', customerId)
+    url.searchParams.set('page', page)
+    url.searchParams.set('per_page', perPage)
+    url.searchParams.set('orderby', 'date')
+    url.searchParams.set('order', 'desc')
+    if (status && status !== 'any') url.searchParams.set('status', status)
+    if (search && search.trim()) url.searchParams.set('search', search.trim())
+
+    const response = await fetch(url.toString(), {
+      method: 'GET',
+      headers: getAuthHeaders(),
+    })
+
+    if (!response.ok) {
+      const data = await response.json()
+      throw new Error(data.message || 'Failed to fetch orders.')
+    }
+
+    const data = await response.json()
+    const total      = Number(response.headers.get('X-WP-Total') || 0)
+    const totalPages = Number(response.headers.get('X-WP-TotalPages') || 1)
+
+    return { data, total, totalPages }
+  } catch (error) {
+    console.error('Error fetching customer orders:', error)
+    throw error
+  }
+}
+
+// Fetch reviews for a specific product
+export const fetchProductReviews = async (productId) => {
+  try {
+    const url = new URL(`${config.baseURL}/wp-json/wc/v3/products/reviews`)
+    url.searchParams.set('product_id', productId)
+    url.searchParams.set('per_page', 50)
+    url.searchParams.set('status', 'approved')
+
+    const response = await fetch(url.toString(), {
+      method: 'GET',
+      headers: getAuthHeaders(),
+    })
+
+    if (!response.ok) {
+      const data = await response.json()
+      throw new Error(data.message || 'Failed to fetch reviews.')
+    }
+
+    return await response.json()
+  } catch (error) {
+    console.error('Error fetching product reviews:', error)
+    throw error
+  }
+}
+
+// Submit a new product review
+export const submitProductReview = async ({ product_id, reviewer, reviewer_email, review, rating }) => {
+  try {
+    const response = await fetch(`${config.baseURL}/wp-json/wc/v3/products/reviews`, {
+      method: 'POST',
+      headers: getAuthHeaders(),
+      body: JSON.stringify({ product_id, reviewer, reviewer_email, review, rating, status: 'approved' }),
+    })
+
+    const data = await response.json()
+
+    if (!response.ok) {
+      throw new Error(data.message || 'Failed to submit review.')
+    }
+
+    return data
+  } catch (error) {
+    console.error('Error submitting review:', error)
+    throw error
+  }
+}

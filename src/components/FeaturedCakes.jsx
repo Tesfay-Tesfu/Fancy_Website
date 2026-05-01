@@ -1,12 +1,31 @@
 import { useState, useEffect, useRef } from "react";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, Heart } from "lucide-react";
 import { fetchProducts } from "../services/woocommerce";
 import { useNavigate } from "react-router-dom";
+import { toggleWishlist, isWishlisted, getWishlist } from "../utils/wishlist";
 
 /* -------------------- Reusable Slider -------------------- */
 const ProductSlider = ({ products, title }) => {
     const scrollRef = useRef(null);
     const navigate = useNavigate();
+    const [wishlist, setWishlist] = useState(getWishlist());
+
+    useEffect(() => {
+        const sync = () => setWishlist(getWishlist());
+        window.addEventListener('wishlist-updated', sync);
+        return () => window.removeEventListener('wishlist-updated', sync);
+    }, []);
+
+    const handleWishlistToggle = (e, product) => {
+        e.stopPropagation();
+        toggleWishlist({
+            id: product.id,
+            slug: product.slug,
+            name: product.name,
+            price: product.price,
+            image: product.images?.[0]?.src || '',
+        });
+    };
 
     const scroll = (direction) => {
         if (scrollRef.current) {
@@ -58,13 +77,25 @@ const ProductSlider = ({ products, title }) => {
                     ref={scrollRef}
                     className="flex gap-6 overflow-hidden scroll-smooth px-12"
                 >
-                    {products.map((product) => (
+                    {products.map((product) => {
+                        const wishlisted = wishlist.some((w) => w.id === product.id);
+                        return (
                         <button
                             key={product.id}
                             type="button"
                             onClick={() => navigate(`/products/${product.slug}`)}
-                            className="min-w-[220px] bg-white rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden group text-left cursor-pointer"
+                            className="min-w-[220px] bg-white rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden group text-left cursor-pointer relative"
                         >
+                            {/* Wishlist button */}
+                            <button
+                                type="button"
+                                onClick={(e) => handleWishlistToggle(e, product)}
+                                className={`absolute top-3 right-3 z-10 h-8 w-8 rounded-full flex items-center justify-center shadow transition
+                                    ${wishlisted ? 'bg-pink-500 text-white' : 'bg-white/90 text-slate-400 hover:text-pink-500'}`}
+                            >
+                                <Heart size={15} fill={wishlisted ? 'currentColor' : 'none'} />
+                            </button>
+
                             {/* Image */}
                             <div className="aspect-square overflow-hidden">
                                 {product.images?.[0] ? (
@@ -90,7 +121,8 @@ const ProductSlider = ({ products, title }) => {
                                 </p>
                             </div>
                         </button>
-                    ))}
+                        );
+                    })}
                 </div>
             </div>
         </div>

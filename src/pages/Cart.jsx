@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { Trash2, Plus, Minus, ShoppingBag, ArrowLeft, ShoppingCart } from 'lucide-react'
 import { getCart, removeFromCart, updateCartQuantity, clearCart } from '../utils/cart'
 
 function Cart() {
+  const navigate = useNavigate()
   const [cart, setCart] = useState([])
   const [removingId, setRemovingId] = useState(null)
   const [showClearConfirm, setShowClearConfirm] = useState(false)
@@ -266,7 +267,9 @@ function Cart() {
           </div>
 
           {/* Checkout button */}
-          <button className="w-full rounded-full bg-amber-600 py-3 text-sm font-bold text-white hover:bg-amber-700 transition shadow-sm">
+          <button
+            onClick={() => navigate('/checkout')}
+            className="w-full rounded-full bg-amber-600 py-3 text-sm font-bold text-white hover:bg-amber-700 transition shadow-sm">
             Proceed to Checkout
           </button>
 
