@@ -3,8 +3,10 @@ import { Link } from 'react-router-dom'
 import { Heart, Trash2, ShoppingBag, ArrowLeft } from 'lucide-react'
 import { getWishlist, removeFromWishlist, toggleWishlist } from '../utils/wishlist'
 import { addToCart } from '../utils/cart'
+import usePageTitle from '../hooks/usePageTitle'
 
 export default function Wishlist() {
+  usePageTitle('My Wishlist')
   const [wishlist, setWishlist] = useState([])
   const [removingId, setRemovingId] = useState(null)
   const [cartToasts, setCartToasts] = useState({}) // { productId: 'added' | 'exists' }

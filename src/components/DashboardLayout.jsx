@@ -4,6 +4,7 @@ import {
   User, MapPin, Package, Heart, Star,
   FileText, RotateCcw, LogOut, ChevronRight
 } from 'lucide-react'
+import usePageTitle from '../hooks/usePageTitle'
 
 const menuItems = [
   { path: '/dashboard/profile',  label: 'My Profile',        icon: User },
@@ -18,6 +19,10 @@ const menuItems = [
 export default function DashboardLayout({ children }) {
   const navigate  = useNavigate()
   const location  = useLocation()
+
+  // Set page title from current menu item
+  const currentMenu = menuItems.find((m) => m.path === location.pathname)
+  usePageTitle(currentMenu ? `${currentMenu.label} — Account` : 'My Account')
   const [user, setUser] = useState(null)
 
   useEffect(() => {

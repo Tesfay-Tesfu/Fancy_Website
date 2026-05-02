@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Search, ShoppingBag, User, Menu, X, Heart } from 'lucide-react';
+import { Search, ShoppingBag, User, Menu, X, Heart, Phone, Mail } from 'lucide-react';
 import logo from '../assets/fancy_logo_v3.png';
 import { Link, useNavigate } from 'react-router-dom';
 import { fetchSearchSuggestions } from '../services/woocommerce';
@@ -109,7 +109,30 @@ function Header() {
   }, []);
 
   return (
-    <header className="sticky top-0 z-50 w-full bg-white/90 backdrop-blur-md border-b border-amber-100 shadow-sm">
+    <div className="sticky top-0 z-50 w-full">
+
+      {/* Top info bar */}
+      <div className="bg-amber-950 text-amber-100 text-xs">
+        <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-2 gap-4">
+          <div className="flex items-center gap-5">
+            <a href="tel:+12407978542" className="flex items-center gap-1.5 hover:text-white transition">
+              <Phone size={12} />
+              +1 240-797-8542
+            </a>
+            <a href="mailto:info@fancycake.com" className="hidden sm:flex items-center gap-1.5 hover:text-white transition">
+              <Mail size={12} />
+              info@fancycake.com
+            </a>
+          </div>
+          <div className="hidden md:flex items-center gap-4 text-amber-300">
+            <span>Mon–Fri: 9am–5pm</span>
+            <span className="text-amber-700">|</span>
+            <span>Sat: 10am–6pm</span>
+          </div>
+        </div>
+      </div>
+
+      <header className="w-full bg-white/90 backdrop-blur-md border-b border-amber-100 shadow-sm">
 
       <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3">
 
@@ -197,7 +220,7 @@ function Header() {
           {/* Desktop Nav */}
           <nav className="hidden md:flex items-center gap-2 text-sm font-medium">
             <Link to="/shop" className="px-3 py-2 hover:bg-amber-50 rounded-full">Shop</Link>
-            <a href="#" className="px-3 py-2 hover:bg-amber-50 rounded-full">About</a>
+            <Link to="/delivery" className="px-3 py-2 hover:bg-amber-50 rounded-full">Delivery Map</Link>
           </nav>
 
           {/* Icons */}
@@ -309,8 +332,9 @@ function Header() {
           {/* Links */}
           <nav className="flex flex-col gap-2 text-sm font-medium">
             <Link to="/shop" className="py-2 px-3 hover:bg-amber-50 rounded-lg">Shop</Link>
-            <a href="#" className="py-2 px-3 hover:bg-amber-50 rounded-lg">Custom Cakes</a>
-            <a href="#" className="py-2 px-3 hover:bg-amber-50 rounded-lg">About</a>
+            <Link to="/delivery" className="py-2 px-3 hover:bg-amber-50 rounded-lg">Delivery</Link>
+            <Link to="/about" className="py-2 px-3 hover:bg-amber-50 rounded-lg">About</Link>
+            <Link to="/faqs" className="py-2 px-3 hover:bg-amber-50 rounded-lg">FAQs</Link>
             <a href="#" className="py-2 px-3 hover:bg-amber-50 rounded-lg">Contact</a>
           </nav>
 
@@ -321,6 +345,7 @@ function Header() {
         </div>
       )}
     </header>
+    </div>
   );
 }
 

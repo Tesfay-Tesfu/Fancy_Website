@@ -2,8 +2,10 @@ import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { Trash2, Plus, Minus, ShoppingBag, ArrowLeft, ShoppingCart } from 'lucide-react'
 import { getCart, removeFromCart, updateCartQuantity, clearCart } from '../utils/cart'
+import usePageTitle from '../hooks/usePageTitle'
 
 function Cart() {
+  usePageTitle('Your Cart')
   const navigate = useNavigate()
   const [cart, setCart] = useState([])
   const [removingId, setRemovingId] = useState(null)

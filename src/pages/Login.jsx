@@ -1,9 +1,11 @@
-import React, { useState, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { loginCustomer } from '../services/woocommerce'
 import { Eye, EyeOff, Loader2, AlertCircle, CheckCircle } from 'lucide-react'
+import usePageTitle from '../hooks/usePageTitle'
 
 const Login = () => {
+  usePageTitle('Sign In')
   const navigate = useNavigate()
   const [formData, setFormData] = useState({ username: '', password: '' })
   const [loading, setLoading] = useState(false)

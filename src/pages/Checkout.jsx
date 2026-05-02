@@ -5,6 +5,7 @@ import {
   CreditCard, ClipboardList, Loader2, AlertCircle, CheckCircle2
 } from 'lucide-react'
 import { getCart, clearCart } from '../utils/cart'
+import usePageTitle from '../hooks/usePageTitle'
 import {
   fetchShippingMethods, fetchPaymentGateways,
   placeOrder, updateCustomerAddress
@@ -96,6 +97,7 @@ function AddressForm({ fields, values, onChange, errors }) {
 
 // ── Main Checkout component ───────────────────────────────────────────────────
 export default function Checkout() {
+  usePageTitle('Checkout')
   const navigate = useNavigate()
   const [step, setStep] = useState(0)
   const [cart, setCart] = useState([])

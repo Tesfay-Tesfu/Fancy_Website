@@ -471,7 +471,7 @@ export const fetchCustomerOrders = async ({
 export const fetchProductReviews = async (productId) => {
   try {
     const url = new URL(`${config.baseURL}/wp-json/wc/v3/products/reviews`)
-    url.searchParams.set('product_id', productId)
+    url.searchParams.set('product', productId)
     url.searchParams.set('per_page', 50)
     url.searchParams.set('status', 'approved')
 
@@ -498,7 +498,7 @@ export const submitProductReview = async ({ product_id, reviewer, reviewer_email
     const response = await fetch(`${config.baseURL}/wp-json/wc/v3/products/reviews`, {
       method: 'POST',
       headers: getAuthHeaders(),
-      body: JSON.stringify({ product_id, reviewer, reviewer_email, review, rating, status: 'approved' }),
+      body: JSON.stringify({ product_id, reviewer, reviewer_email, review, rating, status: 'hold' }),
     })
 
     const data = await response.json()

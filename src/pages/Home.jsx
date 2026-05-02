@@ -1,12 +1,10 @@
 import Slideshow from '../components/Slideshow'
 import Categories from '../components/Categories'
 import FeaturedCakes from '../components/FeaturedCakes'
-import { useEffect } from 'react'
+import usePageTitle from '../hooks/usePageTitle'
 
 function Home() {
-  useEffect(() => {
-    document.title = "Fancy Cakes Patisserie";
-  }, []);
+  usePageTitle('')
   return (
     <>
       <Slideshow />

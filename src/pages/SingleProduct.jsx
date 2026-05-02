@@ -4,9 +4,10 @@ import {
     fetchProductBySlug, fetchProductsByIds, fetchProductVariations,
     fetchAttributeTerms, fetchProductReviews, submitProductReview
 } from '../services/woocommerce'
-import { Home, ShoppingBag, CheckCircle, AlertCircle, Heart, Star, Loader2, Send } from 'lucide-react'
+import { Home, ShoppingBag, CheckCircle, AlertCircle, Heart, Star, Loader2, Send, X } from 'lucide-react'
 import { addToCart, buildVariationDescription } from '../utils/cart'
 import { toggleWishlist, isWishlisted } from '../utils/wishlist'
+import usePageTitle from '../hooks/usePageTitle'
 
 function SingleProduct() {
     const { productSlug } = useParams()
@@ -25,10 +26,14 @@ function SingleProduct() {
     const [cartToast, setCartToast] = useState(null)
     const [wishlisted, setWishlisted] = useState(false)
 
+    // Dynamic page title from product name
+    usePageTitle(product?.name || 'Product')
+
     // Review state
     const [reviews, setReviews] = useState([])
     const [reviewsLoading, setReviewsLoading] = useState(false)
     const [reviewsLoaded, setReviewsLoaded] = useState(false)
+    const [reviewModalOpen, setReviewModalOpen] = useState(false)
     const [reviewForm, setReviewForm] = useState({
         reviewer: localStorage.getItem('first_name')
             ? `${localStorage.getItem('first_name')} ${localStorage.getItem('last_name') || ''}`.trim()
@@ -103,6 +108,7 @@ function SingleProduct() {
             setReviewForm((p) => ({ ...p, review: '', rating: 5 }))
             setSubmitToast('success')
             setSubmitMsg('Your review has been submitted!')
+            setReviewModalOpen(false)
         } catch (err) {
             setSubmitToast('error')
             setSubmitMsg(err.message || 'Failed to submit review.')
@@ -492,8 +498,8 @@ function SingleProduct() {
                     {activeTab === 'reviews' && (
                         <div className="space-y-8">
 
-                            {/* Rating summary */}
-                            <div className="flex items-center gap-4 rounded-2xl bg-amber-50 border border-amber-100 px-6 py-4">
+                            {/* Rating summary + Write a Review button */}
+                            <div className="flex items-center justify-between gap-4 rounded-2xl bg-amber-50 border border-amber-100 px-6 py-4">
                                 <div className="text-center">
                                     <p className="text-4xl font-extrabold text-amber-600">{product.average_rating || '0'}</p>
                                     <div className="flex gap-0.5 mt-1 justify-center">
@@ -505,6 +511,11 @@ function SingleProduct() {
                                     </div>
                                     <p className="text-xs text-slate-500 mt-1">{product.rating_count || 0} reviews</p>
                                 </div>
+                                <button
+                                    onClick={() => setReviewModalOpen(true)}
+                                    className="rounded-full bg-amber-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-amber-700 transition shrink-0">
+                                    Write a Review
+                                </button>
                             </div>
 
                             {/* Review list */}
@@ -519,7 +530,7 @@ function SingleProduct() {
                                     <p className="text-sm">No reviews yet. Be the first to review this product!</p>
                                 </div>
                             ) : (
-                                <div className="space-y-4">
+                                <div className="max-h-[480px] overflow-y-auto pr-2 space-y-4 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:rounded-full [&::-webkit-scrollbar-track]:bg-slate-100 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-amber-300">
                                     {reviews.map((r) => (
                                         <div key={r.id} className="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm">
                                             <div className="flex items-start justify-between gap-3">
@@ -550,87 +561,119 @@ function SingleProduct() {
                                 </div>
                             )}
 
-                            {/* Write a review */}
-                            <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-                                <h3 className="text-base font-bold text-slate-900 mb-4">Write a Review</h3>
-
-                                {submitToast && (
-                                    <div className={`mb-4 flex items-center gap-2 rounded-xl px-4 py-3 text-sm
-                                        ${submitToast === 'success' ? 'bg-green-50 border border-green-200 text-green-700' : 'bg-red-50 border border-red-200 text-red-700'}`}>
-                                        {submitToast === 'success'
-                                            ? <CheckCircle size={15} className="shrink-0" />
-                                            : <AlertCircle size={15} className="shrink-0" />}
-                                        {submitMsg}
-                                    </div>
-                                )}
-
-                                <form onSubmit={handleSubmitReview} className="space-y-4">
-                                    {/* Star picker */}
-                                    <div>
-                                        <label className="block text-xs font-semibold text-slate-500 mb-2">
-                                            Your Rating <span className="text-red-500">*</span>
-                                        </label>
-                                        <div className="flex gap-1">
-                                            {[1,2,3,4,5].map((s) => (
-                                                <button key={s} type="button" onClick={() => handleRatingClick(s)}
-                                                    className="transition hover:scale-110 focus:outline-none">
-                                                    <Star size={28}
-                                                        fill={s <= reviewForm.rating ? '#d97706' : 'none'}
-                                                        className={s <= reviewForm.rating ? 'text-amber-500' : 'text-slate-300 hover:text-amber-400'} />
-                                                </button>
-                                            ))}
-                                        </div>
-                                        {reviewErrors.rating && <p className="mt-1 text-xs text-red-500">{reviewErrors.rating}</p>}
-                                    </div>
-
-                                    {/* Name + Email */}
-                                    <div className="grid sm:grid-cols-2 gap-4">
-                                        <div>
-                                            <label className="block text-xs font-semibold text-slate-500 mb-1.5">
-                                                Name <span className="text-red-500">*</span>
-                                            </label>
-                                            <input type="text" name="reviewer" value={reviewForm.reviewer}
-                                                onChange={handleReviewFormChange} placeholder="Your name"
-                                                className={`w-full rounded-xl border px-3 py-2.5 text-sm focus:outline-none focus:ring-2 transition
-                                                    ${reviewErrors.reviewer ? 'border-red-400 bg-red-50 focus:ring-red-200' : 'border-slate-200 focus:ring-amber-300/40 focus:border-amber-400'}`} />
-                                            {reviewErrors.reviewer && <p className="mt-1 text-xs text-red-500">{reviewErrors.reviewer}</p>}
-                                        </div>
-                                        <div>
-                                            <label className="block text-xs font-semibold text-slate-500 mb-1.5">
-                                                Email <span className="text-red-500">*</span>
-                                            </label>
-                                            <input type="email" name="reviewer_email" value={reviewForm.reviewer_email}
-                                                onChange={handleReviewFormChange} placeholder="your@email.com"
-                                                className={`w-full rounded-xl border px-3 py-2.5 text-sm focus:outline-none focus:ring-2 transition
-                                                    ${reviewErrors.reviewer_email ? 'border-red-400 bg-red-50 focus:ring-red-200' : 'border-slate-200 focus:ring-amber-300/40 focus:border-amber-400'}`} />
-                                            {reviewErrors.reviewer_email && <p className="mt-1 text-xs text-red-500">{reviewErrors.reviewer_email}</p>}
-                                        </div>
-                                    </div>
-
-                                    {/* Review text */}
-                                    <div>
-                                        <label className="block text-xs font-semibold text-slate-500 mb-1.5">
-                                            Review <span className="text-red-500">*</span>
-                                        </label>
-                                        <textarea name="review" value={reviewForm.review}
-                                            onChange={handleReviewFormChange} rows={4}
-                                            placeholder="Share your experience with this product…"
-                                            className={`w-full rounded-xl border px-3 py-2.5 text-sm focus:outline-none focus:ring-2 transition resize-none
-                                                ${reviewErrors.review ? 'border-red-400 bg-red-50 focus:ring-red-200' : 'border-slate-200 focus:ring-amber-300/40 focus:border-amber-400'}`} />
-                                        {reviewErrors.review && <p className="mt-1 text-xs text-red-500">{reviewErrors.review}</p>}
-                                    </div>
-
-                                    <button type="submit" disabled={submitting}
-                                        className="flex items-center gap-2 rounded-full bg-amber-600 px-6 py-2.5 text-sm font-semibold text-white hover:bg-amber-700 disabled:opacity-60 disabled:cursor-not-allowed transition">
-                                        {submitting ? <Loader2 size={15} className="animate-spin" /> : <Send size={15} />}
-                                        {submitting ? 'Submitting…' : 'Submit Review'}
-                                    </button>
-                                </form>
-                            </div>
+                            {/* Submit toast (shown in tab after modal closes) */}
+                            {submitToast && (
+                                <div className={`flex items-center gap-2 rounded-xl px-4 py-3 text-sm
+                                    ${submitToast === 'success' ? 'bg-green-50 border border-green-200 text-green-700' : 'bg-red-50 border border-red-200 text-red-700'}`}>
+                                    {submitToast === 'success'
+                                        ? <CheckCircle size={15} className="shrink-0" />
+                                        : <AlertCircle size={15} className="shrink-0" />}
+                                    {submitMsg}
+                                </div>
+                            )}
                         </div>
                     )}
                 </div>
             </div>
+
+            {/* REVIEW MODAL — slide-in from right */}
+            {reviewModalOpen && (
+                <>
+                    {/* Backdrop */}
+                    <div
+                        className="fixed inset-0 bg-black/40 z-40"
+                        onClick={() => setReviewModalOpen(false)}
+                    />
+                    {/* Panel */}
+                    <div className={`fixed top-0 right-0 h-full w-full max-w-md bg-white z-50 shadow-2xl flex flex-col transition-transform duration-300 ${reviewModalOpen ? 'translate-x-0' : 'translate-x-full'}`}>
+                        {/* Panel header */}
+                        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200 shrink-0">
+                            <h2 className="text-base font-bold text-slate-900">Write a Review</h2>
+                            <button
+                                onClick={() => setReviewModalOpen(false)}
+                                className="rounded-full p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700 transition focus:outline-none">
+                                <X size={20} />
+                            </button>
+                        </div>
+
+                        {/* Panel body — scrollable */}
+                        <div className="flex-1 overflow-y-auto px-6 py-6">
+                            {submitToast && (
+                                <div className={`mb-4 flex items-center gap-2 rounded-xl px-4 py-3 text-sm
+                                    ${submitToast === 'success' ? 'bg-green-50 border border-green-200 text-green-700' : 'bg-red-50 border border-red-200 text-red-700'}`}>
+                                    {submitToast === 'success'
+                                        ? <CheckCircle size={15} className="shrink-0" />
+                                        : <AlertCircle size={15} className="shrink-0" />}
+                                    {submitMsg}
+                                </div>
+                            )}
+
+                            <form onSubmit={handleSubmitReview} className="space-y-5">
+                                {/* Star picker */}
+                                <div>
+                                    <label className="block text-xs font-semibold text-slate-500 mb-2">
+                                        Your Rating <span className="text-red-500">*</span>
+                                    </label>
+                                    <div className="flex gap-1">
+                                        {[1,2,3,4,5].map((s) => (
+                                            <button key={s} type="button" onClick={() => handleRatingClick(s)}
+                                                className="transition hover:scale-110 focus:outline-none">
+                                                <Star size={32}
+                                                    fill={s <= reviewForm.rating ? '#d97706' : 'none'}
+                                                    className={s <= reviewForm.rating ? 'text-amber-500' : 'text-slate-300 hover:text-amber-400'} />
+                                            </button>
+                                        ))}
+                                    </div>
+                                    {reviewErrors.rating && <p className="mt-1 text-xs text-red-500">{reviewErrors.rating}</p>}
+                                </div>
+
+                                {/* Name */}
+                                <div>
+                                    <label className="block text-xs font-semibold text-slate-500 mb-1.5">
+                                        Name <span className="text-red-500">*</span>
+                                    </label>
+                                    <input type="text" name="reviewer" value={reviewForm.reviewer}
+                                        onChange={handleReviewFormChange} placeholder="Your name"
+                                        className={`w-full rounded-xl border px-3 py-2.5 text-sm focus:outline-none focus:ring-2 transition
+                                            ${reviewErrors.reviewer ? 'border-red-400 bg-red-50 focus:ring-red-200' : 'border-slate-200 focus:ring-amber-300/40 focus:border-amber-400'}`} />
+                                    {reviewErrors.reviewer && <p className="mt-1 text-xs text-red-500">{reviewErrors.reviewer}</p>}
+                                </div>
+
+                                {/* Email */}
+                                <div>
+                                    <label className="block text-xs font-semibold text-slate-500 mb-1.5">
+                                        Email <span className="text-red-500">*</span>
+                                    </label>
+                                    <input type="email" name="reviewer_email" value={reviewForm.reviewer_email}
+                                        onChange={handleReviewFormChange} placeholder="your@email.com"
+                                        className={`w-full rounded-xl border px-3 py-2.5 text-sm focus:outline-none focus:ring-2 transition
+                                            ${reviewErrors.reviewer_email ? 'border-red-400 bg-red-50 focus:ring-red-200' : 'border-slate-200 focus:ring-amber-300/40 focus:border-amber-400'}`} />
+                                    {reviewErrors.reviewer_email && <p className="mt-1 text-xs text-red-500">{reviewErrors.reviewer_email}</p>}
+                                </div>
+
+                                {/* Review text */}
+                                <div>
+                                    <label className="block text-xs font-semibold text-slate-500 mb-1.5">
+                                        Review <span className="text-red-500">*</span>
+                                    </label>
+                                    <textarea name="review" value={reviewForm.review}
+                                        onChange={handleReviewFormChange} rows={5}
+                                        placeholder="Share your experience with this product…"
+                                        className={`w-full rounded-xl border px-3 py-2.5 text-sm focus:outline-none focus:ring-2 transition resize-none
+                                            ${reviewErrors.review ? 'border-red-400 bg-red-50 focus:ring-red-200' : 'border-slate-200 focus:ring-amber-300/40 focus:border-amber-400'}`} />
+                                    {reviewErrors.review && <p className="mt-1 text-xs text-red-500">{reviewErrors.review}</p>}
+                                </div>
+
+                                <button type="submit" disabled={submitting}
+                                    className="w-full flex items-center justify-center gap-2 rounded-full bg-amber-600 px-6 py-3 text-sm font-semibold text-white hover:bg-amber-700 disabled:opacity-60 disabled:cursor-not-allowed transition">
+                                    {submitting ? <Loader2 size={15} className="animate-spin" /> : <Send size={15} />}
+                                    {submitting ? 'Submitting…' : 'Submit Review'}
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </>
+            )}
 
             {/* RELATED PRODUCTS */}
             {relatedProducts.length > 0 && (

@@ -1,6 +1,7 @@
 import logo from '../assets/fancy_logo_v3.png';
 import { Phone, Clock, Mail, MapPin } from 'lucide-react';
 import { useNavigate } from "react-router-dom";
+import { Link } from 'react-router-dom';
 
 function Footer() {
     const navigate = useNavigate();
@@ -64,11 +65,12 @@ function Footer() {
                     <div className="space-y-4">
                         <h4 className="text-sm font-semibold uppercase tracking-wider text-white">Quick Links</h4>
                         <ul className="space-y-2 text-sm text-amber-200/80">
-                            <li><a href="#" className="hover:text-white transition">Signature Cakes</a></li>
-                            <li><a href="#" className="hover:text-white transition">Wedding Cakes</a></li>
-                            <li><a href="#" className="hover:text-white transition">Cupcakes</a></li>
-                            <li><a href="#" className="hover:text-white transition">Custom Orders</a></li>
-                            <li><a href="#" className="hover:text-white transition">Track Order</a></li>
+                            <li><Link to="/about" className="hover:text-white transition">About Us</Link></li>
+                            <li><Link to="/faqs" className="hover:text-white transition">FAQs</Link></li>
+                            <li><Link to="/ordering-guide" className="hover:text-white transition">Ordering Guide</Link></li>
+                            <li><Link to="/delivery" className="hover:text-white transition">Delivery Areas</Link></li>
+                            <li><Link to="/privacy-policy" className="hover:text-white transition">Privacy Policy</Link></li>
+                            <li><Link to="/terms" className="hover:text-white transition">Terms & Conditions</Link></li>
                         </ul>
                     </div>
 
@@ -108,8 +110,9 @@ function Footer() {
                     <p>© {new Date().getFullYear()} Nano Bake House. All rights reserved.</p>
 
                     <div className="flex gap-4 mt-2 md:mt-0">
-                        <a href="#" className="hover:text-white">Privacy Policy</a>
-                        <a href="#" className="hover:text-white">Terms</a>
+                        <Link to="/privacy-policy" className="hover:text-white">Privacy Policy</Link>
+                        <Link to="/terms" className="hover:text-white">Terms</Link>
+                        <Link to="/faqs" className="hover:text-white">FAQs</Link>
                     </div>
                 </div>
             </div>

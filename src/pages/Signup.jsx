@@ -1,9 +1,11 @@
-import React, { useState } from 'react'
+import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { createCustomer } from '../services/woocommerce'
 import { Eye, EyeOff, Loader2, AlertCircle, CheckCircle, User, Mail, Lock } from 'lucide-react'
+import usePageTitle from '../hooks/usePageTitle'
 
 const Signup = () => {
+  usePageTitle('Create Account')
   const navigate = useNavigate()
   const [formData, setFormData] = useState({
     email: '',

@@ -4,8 +4,10 @@ import { fetchProducts, fetchCategories, fetchSizeAttributes, fetchFlavourAttrib
 import { Heart } from 'lucide-react'
 import { toggleWishlist, getWishlist } from '../utils/wishlist'
 import { addToCart } from '../utils/cart'
+import usePageTitle from '../hooks/usePageTitle'
 
 function Shop() {
+  usePageTitle('Shop')
   const [searchParams] = useSearchParams()
   const [products, setProducts] = useState([])
   const [categories, setCategories] = useState([])
