@@ -15,6 +15,7 @@ import TermsPage from './pages/Terms'
 import AboutUs from './pages/AboutUs'
 import FAQs from './pages/FAQs'
 import OrderingGuide from './pages/OrderingGuide'
+import ReturnPolicy from './pages/ReturnPolicy'
 
 // Dashboard sub-pages
 import Profile        from './pages/dashboard/Profile'
@@ -46,6 +47,7 @@ function App() {
           <Route path="/about"                 element={<AboutUs />} />
           <Route path="/faqs"                  element={<FAQs />} />
           <Route path="/ordering-guide"        element={<OrderingGuide />} />
+          <Route path="/return-policy"         element={<ReturnPolicy />} />
 
           {/* Dashboard — redirect /dashboard → /dashboard/profile */}
           <Route path="/dashboard"             element={<Navigate to="/dashboard/profile" replace />} />
