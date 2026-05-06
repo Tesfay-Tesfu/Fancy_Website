@@ -6,6 +6,7 @@ import {
 } from 'lucide-react'
 import { getCart, clearCart } from '../utils/cart'
 import usePageTitle from '../hooks/usePageTitle'
+import { secureGet } from '../utils/secureStorage'
 import {
   fetchShippingMethods, fetchPaymentGateways,
   placeOrder, updateCustomerAddress
@@ -95,6 +96,50 @@ function AddressForm({ fields, values, onChange, errors }) {
   )
 }
 
+// ── DeliveryDatePicker component ─────────────────────────────────────────────
+function DeliveryDatePicker({ deliveryDate, setDeliveryDate }) {
+  const tomorrow = new Date()
+  tomorrow.setDate(tomorrow.getDate() + 1)
+  const minDate = tomorrow.toISOString().split('T')[0]
+
+  const maxDate = new Date()
+  maxDate.setMonth(maxDate.getMonth() + 3)
+  const maxDateStr = maxDate.toISOString().split('T')[0]
+
+  return (
+    <div className="mt-5 rounded-2xl border-2 border-slate-200 p-5 space-y-3">
+      <div className="flex items-center gap-2">
+        <span className="text-base">📅</span>
+        <div>
+          <p className="text-sm font-semibold text-slate-800">Preferred Delivery Date <span className="text-red-500">*</span></p>
+          <p className="text-xs text-slate-400">We need at least 24 hours notice. Orders placed before 2pm may qualify for next-day delivery.</p>
+        </div>
+      </div>
+      <input
+        type="date"
+        value={deliveryDate}
+        min={minDate}
+        max={maxDateStr}
+        onChange={(e) => setDeliveryDate(e.target.value)}
+        className={`w-full rounded-xl border px-4 py-2.5 text-sm text-slate-800
+          focus:outline-none focus:ring-2 focus:ring-amber-300/40 focus:border-amber-400 transition
+          ${!deliveryDate ? 'border-red-300 bg-red-50' : 'border-slate-200'}`}
+      />
+      {!deliveryDate && (
+        <p className="text-xs text-red-500">⚠ Please select a preferred delivery date to continue.</p>
+      )}
+      {deliveryDate && (
+        <p className="text-xs text-green-600 font-medium">
+          ✓ Delivery requested for{' '}
+          {new Date(deliveryDate + 'T00:00:00').toLocaleDateString('en-GB', {
+            weekday: 'long', day: '2-digit', month: 'long', year: 'numeric'
+          })}
+        </p>
+      )}
+    </div>
+  )
+}
+
 // ── Main Checkout component ───────────────────────────────────────────────────
 export default function Checkout() {
   usePageTitle('Checkout')
@@ -115,6 +160,7 @@ export default function Checkout() {
   const [selectedShipping, setSelectedShipping] = useState(null)
   const [selectedPayment,  setSelectedPayment]  = useState(null)
   const [methodsLoading,   setMethodsLoading]   = useState(false)
+  const [deliveryDate,     setDeliveryDate]      = useState('')  // ISO date string
 
   // Order state
   const [placing,      setPlacing]      = useState(false)
@@ -123,14 +169,14 @@ export default function Checkout() {
 
   // ── init ──────────────────────────────────────────────────────────────────
   useEffect(() => {
-    const userId = localStorage.getItem('user_id')
+    const userId = secureGet('fcp_user_id')
     if (!userId) { navigate('/login'); return }
 
     const u = {
       id:         userId,
-      first_name: localStorage.getItem('first_name') || '',
-      last_name:  localStorage.getItem('last_name')  || '',
-      email:      localStorage.getItem('email')      || '',
+      first_name: secureGet('fcp_first_name') || '',
+      last_name:  secureGet('fcp_last_name')  || '',
+      email:      secureGet('fcp_email')      || '',
     }
     setUser(u)
     setCart(getCart())
@@ -193,6 +239,7 @@ export default function Checkout() {
     }
 
     if (step === 1 && !selectedShipping) return
+    if (step === 1 && !deliveryDate) return   // delivery date required
     if (step === 3 && !selectedPayment)  return
 
     setStep((s) => Math.min(s + 1, STEPS.length - 1))
@@ -235,6 +282,13 @@ export default function Checkout() {
         total:        String(selectedShipping.settings?.cost?.value || '0'),
       }] : [],
       customer_id: user?.id ? parseInt(user.id) : 0,
+      // Store requested delivery date as order meta and customer note
+      meta_data: deliveryDate ? [
+        { key: '_requested_delivery_date', value: deliveryDate }
+      ] : [],
+      customer_note: deliveryDate
+        ? `Requested delivery date: ${new Date(deliveryDate).toLocaleDateString('en-GB', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' })}`
+        : '',
     }
 
     try {
@@ -388,33 +442,43 @@ export default function Checkout() {
                   <p className="text-sm">No shipping methods available.</p>
                 </div>
               ) : (
-                <div className="space-y-3">
-                  {shippingMethods.map((method) => {
-                    const cost = method.settings?.cost?.value
-                    const isSelected = selectedShipping?.instance_id === method.instance_id
-                    return (
-                      <label
-                        key={method.instance_id}
-                        className={`flex items-center gap-4 rounded-2xl border-2 p-4 cursor-pointer transition-all
-                          ${isSelected ? 'border-amber-500 bg-amber-50' : 'border-slate-200 hover:border-slate-300'}`}
-                      >
-                        <input
-                          type="radio"
-                          name="shipping"
-                          checked={isSelected}
-                          onChange={() => setSelectedShipping(method)}
-                          className="accent-amber-600 h-4 w-4 shrink-0"
-                        />
-                        <div className="flex-1">
-                          <p className="font-semibold text-slate-800">{method.title || method.method_id}</p>
-                        </div>
-                        <span className={`text-sm font-bold ${isSelected ? 'text-amber-600' : 'text-slate-600'}`}>
-                          {cost && parseFloat(cost) > 0 ? `£${parseFloat(cost).toFixed(2)}` : 'Free'}
-                        </span>
-                      </label>
-                    )
-                  })}
-                </div>
+                <>
+                  <div className="space-y-3">
+                    {shippingMethods.map((method) => {
+                      const cost = method.settings?.cost?.value
+                      const isSelected = selectedShipping?.instance_id === method.instance_id
+                      return (
+                        <label
+                          key={method.instance_id}
+                          className={`flex items-center gap-4 rounded-2xl border-2 p-4 cursor-pointer transition-all
+                            ${isSelected ? 'border-amber-500 bg-amber-50' : 'border-slate-200 hover:border-slate-300'}`}
+                        >
+                          <input
+                            type="radio"
+                            name="shipping"
+                            checked={isSelected}
+                            onChange={() => setSelectedShipping(method)}
+                            className="accent-amber-600 h-4 w-4 shrink-0"
+                          />
+                          <div className="flex-1">
+                            <p className="font-semibold text-slate-800">{method.title || method.method_id}</p>
+                          </div>
+                          <span className={`text-sm font-bold ${isSelected ? 'text-amber-600' : 'text-slate-600'}`}>
+                            {cost && parseFloat(cost) > 0 ? `£${parseFloat(cost).toFixed(2)}` : 'Free'}
+                          </span>
+                        </label>
+                      )
+                    })}
+                  </div>
+
+                  {/* ── Delivery date picker ── */}
+                  {selectedShipping && (
+                    <DeliveryDatePicker
+                      deliveryDate={deliveryDate}
+                      setDeliveryDate={setDeliveryDate}
+                    />
+                  )}
+                </>
               )}
             </div>
           )}
@@ -541,6 +605,13 @@ export default function Checkout() {
                   <p className="text-sm text-amber-600 font-bold">
                     {shippingCost > 0 ? `£${shippingCost.toFixed(2)}` : 'Free'}
                   </p>
+                  {deliveryDate && (
+                    <p className="text-xs text-slate-500 mt-1">
+                      📅 {new Date(deliveryDate + 'T00:00:00').toLocaleDateString('en-GB', {
+                        weekday: 'short', day: '2-digit', month: 'short', year: 'numeric'
+                      })}
+                    </p>
+                  )}
                 </section>
                 <section className="rounded-xl border border-slate-100 bg-slate-50 p-4">
                   <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wide mb-1">Payment Method</h3>
@@ -560,7 +631,7 @@ export default function Checkout() {
                 </div>
                 <div className="flex justify-between text-base font-bold text-slate-900 pt-2 border-t border-slate-100">
                   <span>Total</span>
-                  <span className="text-amber-600">£{total.toFixed(2)}</span>
+                  <span className="text-amber-600">${total.toFixed(2)}</span>
                 </div>
               </section>
 

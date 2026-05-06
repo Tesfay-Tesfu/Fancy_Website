@@ -300,32 +300,19 @@ export const loginCustomer = async (username, password) => {
     const response = await fetch(endpoints.login, {
       method: 'POST',
       headers: getAuthHeaders(),
-      body: JSON.stringify({
-        username,
-        password,
-      }),
+      body: JSON.stringify({ username, password }),
     })
 
     const data = await response.json()
 
-    // ❌ Handle backend error (401, 400, etc.)
     if (!response.ok) {
       throw new Error(data.message || 'Invalid credentials')
     }
 
-    // ✅ Success response (status: 200)
     if (data.status === 200 && data.user) {
-      const user = data.user
-
-      // 💾 Save to localStorage
-      localStorage.setItem('user_id', user.id)
-      localStorage.setItem('username', user.username)
-      localStorage.setItem('email', user.email)
-      localStorage.setItem('first_name', user.first_name)
-      localStorage.setItem('last_name', user.last_name)
-
+      // Storage is handled by Login.jsx using secureSet
       return data
-    }else{
+    } else {
       throw new Error(data.message || 'Unexpected response format')
     }
 
@@ -510,6 +497,30 @@ export const submitProductReview = async ({ product_id, reviewer, reviewer_email
     return data
   } catch (error) {
     console.error('Error submitting review:', error)
+    throw error
+  }
+}
+
+// Fetch all approved reviews (for homepage display)
+export const fetchAllReviews = async (perPage = 100) => {
+  try {
+    const url = new URL(`${config.baseURL}/wp-json/wc/v3/products/reviews`)
+    url.searchParams.set('per_page', perPage)
+    url.searchParams.set('status', 'approved')
+
+    const response = await fetch(url.toString(), {
+      method: 'GET',
+      headers: getAuthHeaders(),
+    })
+
+    if (!response.ok) {
+      const data = await response.json()
+      throw new Error(data.message || 'Failed to fetch reviews.')
+    }
+
+    return await response.json()
+  } catch (error) {
+    console.error('Error fetching all reviews:', error)
     throw error
   }
 }

@@ -3,6 +3,7 @@ import { useNavigate, Link } from 'react-router-dom'
 import { loginCustomer } from '../services/woocommerce'
 import { Eye, EyeOff, Loader2, AlertCircle, CheckCircle } from 'lucide-react'
 import usePageTitle from '../hooks/usePageTitle'
+import { secureSet, secureGet } from '../utils/secureStorage'
 
 const Login = () => {
   usePageTitle('Sign In')
@@ -14,7 +15,7 @@ const Login = () => {
   const [showPassword, setShowPassword] = useState(false)
 
   useEffect(() => {
-    if (localStorage.getItem('user_id')) navigate('/dashboard')
+    if (secureGet('fcp_user_id')) navigate('/dashboard')
   }, [navigate])
 
   const handleChange = (e) => {
@@ -31,11 +32,11 @@ const Login = () => {
     try {
       const result = await loginCustomer(formData.username, formData.password)
       const user = result.user
-      localStorage.setItem('user_id', user.id)
-      localStorage.setItem('username', user.username)
-      localStorage.setItem('email', user.email)
-      localStorage.setItem('first_name', user.first_name)
-      localStorage.setItem('last_name', user.last_name)
+      secureSet('fcp_user_id',    user.id)
+      secureSet('fcp_username',   user.username)
+      secureSet('fcp_email',      user.email)
+      secureSet('fcp_first_name', user.first_name)
+      secureSet('fcp_last_name',  user.last_name)
 
       setSuccess('Redirecting to your dashboard...')
       setTimeout(() => {

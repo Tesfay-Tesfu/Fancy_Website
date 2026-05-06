@@ -8,6 +8,7 @@ import { Home, ShoppingBag, CheckCircle, AlertCircle, Heart, Star, Loader2, Send
 import { addToCart, buildVariationDescription } from '../utils/cart'
 import { toggleWishlist, isWishlisted } from '../utils/wishlist'
 import usePageTitle from '../hooks/usePageTitle'
+import { secureGet } from '../utils/secureStorage'
 
 function SingleProduct() {
     const { productSlug } = useParams()
@@ -34,13 +35,15 @@ function SingleProduct() {
     const [reviewsLoading, setReviewsLoading] = useState(false)
     const [reviewsLoaded, setReviewsLoaded] = useState(false)
     const [reviewModalOpen, setReviewModalOpen] = useState(false)
-    const [reviewForm, setReviewForm] = useState({
-        reviewer: localStorage.getItem('first_name')
-            ? `${localStorage.getItem('first_name')} ${localStorage.getItem('last_name') || ''}`.trim()
-            : '',
-        reviewer_email: localStorage.getItem('email') || '',
-        review: '',
-        rating: 5,
+    const [reviewForm, setReviewForm] = useState(() => {
+        const firstName = secureGet('fcp_first_name') || ''
+        const lastName  = secureGet('fcp_last_name')  || ''
+        return {
+            reviewer:       firstName ? `${firstName} ${lastName}`.trim() : '',
+            reviewer_email: secureGet('fcp_email') || '',
+            review:  '',
+            rating:  5,
+        }
     })
     const [reviewErrors, setReviewErrors] = useState({})
     const [submitting, setSubmitting] = useState(false)

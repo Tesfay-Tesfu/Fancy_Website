@@ -1,17 +1,13 @@
-const WISHLIST_KEY = 'bakery_wishlist'
+import { secureGet, secureSet, secureRemove } from './secureStorage'
 
-// Read wishlist from localStorage
-export const getWishlist = () => {
-  try {
-    return JSON.parse(localStorage.getItem(WISHLIST_KEY)) || []
-  } catch {
-    return []
-  }
-}
+const WISHLIST_KEY = 'fcp_wishlist'
 
-// Save and broadcast
+// Read wishlist from encrypted localStorage
+export const getWishlist = () => secureGet(WISHLIST_KEY, [])
+
+// Save wishlist to encrypted localStorage and notify listeners
 const saveWishlist = (list) => {
-  localStorage.setItem(WISHLIST_KEY, JSON.stringify(list))
+  secureSet(WISHLIST_KEY, list)
   window.dispatchEvent(new Event('wishlist-updated'))
 }
 
@@ -22,7 +18,7 @@ export const isWishlisted = (productId) =>
 // Toggle — add if not present, remove if present
 // Returns true if added, false if removed
 export const toggleWishlist = (product) => {
-  const list = getWishlist()
+  const list   = getWishlist()
   const exists = list.some((item) => item.id === product.id)
   if (exists) {
     saveWishlist(list.filter((item) => item.id !== product.id))
@@ -38,3 +34,9 @@ export const removeFromWishlist = (productId) =>
 
 // Count
 export const getWishlistCount = () => getWishlist().length
+
+// Clear entire wishlist — removes encrypted key and notifies listeners
+export const clearWishlist = () => {
+  secureRemove(WISHLIST_KEY)
+  window.dispatchEvent(new Event('wishlist-updated'))
+}

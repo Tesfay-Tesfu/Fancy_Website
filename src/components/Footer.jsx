@@ -106,15 +106,27 @@ function Footer() {
                 </div>
 
                 {/* Divider */}
-                <div className="mt-10 border-t border-amber-900 pt-6 flex flex-col md:flex-row justify-between items-center text-xs text-amber-300">
+                <div className="mt-10 border-t border-amber-900 pt-6 flex flex-col md:flex-row justify-between items-center gap-3 text-xs text-amber-300">
 
-                    <p>© {new Date().getFullYear()} Nano Bake House. All rights reserved.</p>
+                    <p>© {new Date().getFullYear()} Fancy Cakes Patisserie. All rights reserved.</p>
 
-                    <div className="flex gap-4 mt-2 md:mt-0">
+                    <div className="flex gap-4">
                         <Link to="/privacy-policy" className="hover:text-white">Privacy Policy</Link>
                         <Link to="/terms" className="hover:text-white">Terms</Link>
                         <Link to="/faqs" className="hover:text-white">FAQs</Link>
                     </div>
+
+                    <p className="text-amber-500/70">
+                        Developed by{' '}
+                        <a
+                            href="https://afromerica.org"
+                            target="_blank"
+                            rel="noreferrer"
+                            className="text-amber-400 hover:text-white font-semibold transition"
+                        >
+                            Afro-Merica
+                        </a>
+                    </p>
                 </div>
             </div>
         </footer>

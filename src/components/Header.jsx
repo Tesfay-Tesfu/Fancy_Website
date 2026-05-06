@@ -3,8 +3,9 @@ import { Search, ShoppingBag, User, Menu, X, Heart, Phone, Mail } from 'lucide-r
 import logo from '../assets/fancy_logo_v3.png';
 import { Link, useNavigate } from 'react-router-dom';
 import { fetchSearchSuggestions } from '../services/woocommerce';
-import { getCartCount } from '../utils/cart';
-import { getWishlistCount } from '../utils/wishlist';
+import { getCartCount, clearCart } from '../utils/cart';
+import { getWishlistCount, clearWishlist } from '../utils/wishlist';
+import { secureGet, secureRemove } from '../utils/secureStorage';
 
 function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -63,11 +64,15 @@ function Header() {
   };
 
   const handleLogout = () => {
-    localStorage.removeItem('user_id');
-    localStorage.removeItem('username');
-    localStorage.removeItem('email');
-    localStorage.removeItem('first_name');
-    localStorage.removeItem('last_name');
+    clearCart();
+    clearWishlist();
+    secureRemove('fcp_user_id');
+    secureRemove('fcp_username');
+    secureRemove('fcp_email');
+    secureRemove('fcp_first_name');
+    secureRemove('fcp_last_name');
+    secureRemove('fcp_billing');
+    secureRemove('fcp_shipping');
     setIsLoggedIn(false);
     navigate('/');
   };
@@ -98,9 +103,8 @@ function Header() {
   }, []);
 
   useEffect(() => {
-    // Check if user is logged in
-    const userId = localStorage.getItem('user_id');
-    const firstName = localStorage.getItem('first_name');
+    const userId = secureGet('fcp_user_id');
+    const firstName = secureGet('fcp_first_name');
     if (userId && firstName) {
       setIsLoggedIn(true);
     } else {

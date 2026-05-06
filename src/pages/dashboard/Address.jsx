@@ -3,14 +3,14 @@ import DashboardLayout from '../../components/DashboardLayout'
 import { MapPin, Pencil, CheckCircle, AlertCircle, Loader2 } from 'lucide-react'
 import { updateCustomerAddress } from '../../services/woocommerce'
 
-// ── localStorage helpers ──────────────────────────────────────────────────────
-const saveAddressLocally = (type, data) =>
-  localStorage.setItem(`customer_${type}`, JSON.stringify(data))
+import { secureGet, secureSet } from '../../utils/secureStorage'
 
-const loadAddressLocally = (type) => {
-  try { return JSON.parse(localStorage.getItem(`customer_${type}`)) || null }
-  catch { return null }
-}
+// ── Address storage helpers ───────────────────────────────────────────────────
+const saveAddressLocally = (type, data) =>
+  secureSet(`fcp_${type}`, data)
+
+const loadAddressLocally = (type) =>
+  secureGet(`fcp_${type}`, null)
 
 const emptyAddress = () => ({
   first_name: '', last_name: '', company: '',

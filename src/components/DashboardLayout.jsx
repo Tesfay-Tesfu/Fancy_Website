@@ -5,6 +5,9 @@ import {
   FileText, RotateCcw, LogOut, ChevronRight
 } from 'lucide-react'
 import usePageTitle from '../hooks/usePageTitle'
+import { clearCart } from '../utils/cart'
+import { clearWishlist } from '../utils/wishlist'
+import { secureGet, secureRemove } from '../utils/secureStorage'
 
 const menuItems = [
   { path: '/dashboard/profile',  label: 'My Profile',        icon: User },
@@ -26,18 +29,29 @@ export default function DashboardLayout({ children }) {
   const [user, setUser] = useState(null)
 
   useEffect(() => {
-    const userId = localStorage.getItem('user_id')
+    const userId = secureGet('fcp_user_id')
     if (!userId) { navigate('/login'); return }
     setUser({
       id:         userId,
-      username:   localStorage.getItem('username')   || '',
-      email:      localStorage.getItem('email')      || '',
-      first_name: localStorage.getItem('first_name') || 'Guest',
-      last_name:  localStorage.getItem('last_name')  || 'User',
+      username:   secureGet('fcp_username')   || '',
+      email:      secureGet('fcp_email')      || '',
+      first_name: secureGet('fcp_first_name') || 'Guest',
+      last_name:  secureGet('fcp_last_name')  || 'User',
     })
   }, [navigate])
 
-  const handleLogout = () => { localStorage.clear(); navigate('/login') }
+  const handleLogout = () => {
+    clearCart()
+    clearWishlist()
+    secureRemove('fcp_user_id')
+    secureRemove('fcp_username')
+    secureRemove('fcp_email')
+    secureRemove('fcp_first_name')
+    secureRemove('fcp_last_name')
+    secureRemove('fcp_billing')
+    secureRemove('fcp_shipping')
+    navigate('/login')
+  }
   const initials = user ? `${user.first_name[0]}${user.last_name[0]}` : '?'
 
   if (!user) return (
