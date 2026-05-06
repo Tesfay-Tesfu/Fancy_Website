@@ -18,46 +18,51 @@ import OrderingGuide from './pages/OrderingGuide'
 import ReturnPolicy from './pages/ReturnPolicy'
 
 // Dashboard sub-pages
-import Profile        from './pages/dashboard/Profile'
-import Address        from './pages/dashboard/Address'
-import Orders         from './pages/dashboard/Orders'
-import DashWishlist   from './pages/dashboard/Wishlist'
-import Reviews        from './pages/dashboard/Reviews'
-import Returns        from './pages/dashboard/Returns'
-import DashTerms      from './pages/dashboard/Terms'
+import Profile from './pages/dashboard/Profile'
+import Address from './pages/dashboard/Address'
+import Orders from './pages/dashboard/Orders'
+import DashWishlist from './pages/dashboard/Wishlist'
+import Reviews from './pages/dashboard/Reviews'
+import Returns from './pages/dashboard/Returns'
+import DashTerms from './pages/dashboard/Terms'
 
 function App() {
   return (
-    <BrowserRouter>
+    <BrowserRouter
+      future={{
+        v7_startTransition: true,      // ✅ fixes startTransition warning
+        v7_relativeSplatPath: true,    // ✅ fixes relativeSplatPath warning
+      }}
+    >
       <div className="min-h-screen bg-white text-slate-900">
         <Header />
 
         <Routes>
-          <Route path="/"                      element={<Home />} />
-          <Route path="/shop"                  element={<Shop />} />
+          <Route path="/" element={<Home />} />
+          <Route path="/shop" element={<Shop />} />
           <Route path="/products/:productSlug" element={<SingleProduct />} />
-          <Route path="/signup"                element={<Signup />} />
-          <Route path="/login"                 element={<Login />} />
-          <Route path="/cart"                  element={<Cart />} />
-          <Route path="/checkout"              element={<Checkout />} />
-          <Route path="/wishlist"              element={<WishlistPage />} />
-          <Route path="/delivery"              element={<DeliveryMap />} />
-          <Route path="/privacy-policy"        element={<PrivacyPolicy />} />
-          <Route path="/terms"                 element={<TermsPage />} />
-          <Route path="/about"                 element={<AboutUs />} />
-          <Route path="/faqs"                  element={<FAQs />} />
-          <Route path="/ordering-guide"        element={<OrderingGuide />} />
-          <Route path="/return-policy"         element={<ReturnPolicy />} />
+          <Route path="/signup" element={<Signup />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/cart" element={<Cart />} />
+          <Route path="/checkout" element={<Checkout />} />
+          <Route path="/wishlist" element={<WishlistPage />} />
+          <Route path="/delivery" element={<DeliveryMap />} />
+          <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+          <Route path="/terms" element={<TermsPage />} />
+          <Route path="/about" element={<AboutUs />} />
+          <Route path="/faqs" element={<FAQs />} />
+          <Route path="/ordering-guide" element={<OrderingGuide />} />
+          <Route path="/return-policy" element={<ReturnPolicy />} />
 
           {/* Dashboard — redirect /dashboard → /dashboard/profile */}
-          <Route path="/dashboard"             element={<Navigate to="/dashboard/profile" replace />} />
-          <Route path="/dashboard/profile"     element={<Profile />} />
-          <Route path="/dashboard/address"     element={<Address />} />
-          <Route path="/dashboard/orders"      element={<Orders />} />
-          <Route path="/dashboard/wishlist"    element={<DashWishlist />} />
-          <Route path="/dashboard/reviews"     element={<Reviews />} />
-          <Route path="/dashboard/returns"     element={<Returns />} />
-          <Route path="/dashboard/terms"       element={<DashTerms />} />
+          <Route path="/dashboard" element={<Navigate to="/dashboard/profile" replace />} />
+          <Route path="/dashboard/profile" element={<Profile />} />
+          <Route path="/dashboard/address" element={<Address />} />
+          <Route path="/dashboard/orders" element={<Orders />} />
+          <Route path="/dashboard/wishlist" element={<DashWishlist />} />
+          <Route path="/dashboard/reviews" element={<Reviews />} />
+          <Route path="/dashboard/returns" element={<Returns />} />
+          <Route path="/dashboard/terms" element={<DashTerms />} />
         </Routes>
 
         <Footer />

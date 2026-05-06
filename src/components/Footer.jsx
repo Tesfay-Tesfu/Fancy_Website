@@ -1,136 +1,167 @@
+import { useState } from 'react';
+import { Phone, Clock, Mail, MapPin, ChevronDown, ChevronUp } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
 import logo from '../assets/fancy_logo_v3.png';
-import { Phone, Clock, Mail, MapPin } from 'lucide-react';
-import { useNavigate } from "react-router-dom";
-import { Link } from 'react-router-dom';
+
+const quickLinks = [
+  { to: '/about', label: 'About Us' },
+  { to: '/faqs', label: 'FAQs' },
+  { to: '/ordering-guide', label: 'Ordering Guide' },
+  { to: '/delivery', label: 'Delivery Areas' },
+  { to: '/return-policy', label: 'Return & Refund Policy' },
+  { to: '/privacy-policy', label: 'Privacy Policy' },
+  { to: '/terms', label: 'Terms & Conditions' },
+]
+
+// Collapsible section for mobile
+function FooterSection({ title, children }) {
+  const [open, setOpen] = useState(false)
+  return (
+    <div className="border-b border-amber-900 md:border-none">
+      <button
+        onClick={() => setOpen((p) => !p)}
+        className="w-full flex items-center justify-between py-4 md:py-0 md:cursor-default md:pointer-events-none"
+      >
+        <h4 className="text-sm font-semibold uppercase tracking-wider text-white">{title}</h4>
+        <span className="md:hidden text-amber-400">
+          {open ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+        </span>
+      </button>
+      <div className={`pb-4 md:pb-0 md:block ${open ? 'block' : 'hidden'}`}>
+        {children}
+      </div>
+    </div>
+  )
+}
 
 function Footer() {
-    const navigate = useNavigate();
-    return (
-        <footer className="bg-amber-950 text-amber-100">
-            <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
+  const navigate = useNavigate()
+  const [email, setEmail] = useState('')
+  const [subscribed, setSubscribed] = useState(false)
 
-                {/* Top Section */}
-                <div className="grid grid-cols-1 gap-10 sm:grid-cols-2 lg:grid-cols-4">
+  const handleSubscribe = (e) => {
+    e.preventDefault()
+    if (email.trim()) { setSubscribed(true); setEmail('') }
+  }
 
-                    {/* Brand + Contact */}
-                    <div className="space-y-5">
-                        <div className="flex items-center gap-3">
-                            <img src={logo} alt="Nano Bake House" className="h-14 w-14 rounded-xl shadow-md" />
-                            <h2 className="text-xl font-bold text-white">FANCY CAKES PATISSERIE</h2>
-                        </div>
+  return (
+    <footer className="bg-amber-950 text-amber-100">
+      <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
 
-                        <p className="text-sm text-amber-200/80">
-                            Freshly baked cakes crafted with love. Order online and enjoy fast delivery.
-                        </p>
+        {/* ── Top grid ── */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-0 md:gap-10">
 
-                        <div className="space-y-2">
-                            <div className="flex items-center gap-2">
-                                <Phone size={18} />
-                                <span className="text-sm">+1 240-797-8542</span>
-                            </div>
-                            <div className="flex items-center gap-2">
-                                <Mail size={18} />
-                                <span className="text-sm">info@fancycake.com</span>
-                            </div>
-                            <div className="flex items-center gap-2">
-                                <MapPin size={18} />
-                                <span className="text-sm">7513, Maple Ave</span>
-                            </div>
-                        </div>
-                    </div>
+          {/* Brand + Contact — always visible */}
+          <div className="py-6 md:py-0 border-b border-amber-900 md:border-none space-y-4">
+            <Link to="/" className="flex items-center gap-3">
+              <img src={logo} alt="Fancy Cakes Patisserie" className="h-12 w-12 rounded-xl shadow-md shrink-0" />
+              <span className="text-base font-bold text-white leading-tight">FANCY CAKES<br />PATISSERIE</span>
+            </Link>
 
-                    {/* Opening Hours */}
-                    <div className="space-y-4">
-                        <h4 className="text-sm font-semibold uppercase tracking-wider text-white flex items-center gap-2">
-                            <Clock size={16} /> Opening Hours
-                        </h4>
-                        <ul className="text-sm text-amber-200/80 space-y-1">
-                            <li>Mon - Fri: 9am – 5pm</li>
-                            <li>Saturday: 10am – 6pm</li>
-                            <li>Sunday: Closed</li>
-                        </ul>
+            <p className="text-sm text-amber-200/80 leading-relaxed">
+              Freshly baked cakes crafted with love. Order online and enjoy fast delivery.
+            </p>
 
-                        <div className="mt-4">
-                            <button
-                                onClick={() => navigate("/shop")}
-                                className="w-full bg-amber-500 hover:bg-amber-600 text-white py-2 rounded-lg transition"
-                            >
-                                Order Now 🍰
-
-                            </button>
-                        </div>
-                    </div>
-
-                    {/* Quick Links */}
-                    <div className="space-y-4">
-                        <h4 className="text-sm font-semibold uppercase tracking-wider text-white">Quick Links</h4>
-                        <ul className="space-y-2 text-sm text-amber-200/80">
-                            <li><Link to="/about" className="hover:text-white transition">About Us</Link></li>
-                            <li><Link to="/faqs" className="hover:text-white transition">FAQs</Link></li>
-                            <li><Link to="/ordering-guide" className="hover:text-white transition">Ordering Guide</Link></li>
-                            <li><Link to="/delivery" className="hover:text-white transition">Delivery Areas</Link></li>
-                            <li><Link to="/return-policy" className="hover:text-white transition">Return & Refund Policy</Link></li>
-                            <li><Link to="/privacy-policy" className="hover:text-white transition">Privacy Policy</Link></li>
-                            <li><Link to="/terms" className="hover:text-white transition">Terms & Conditions</Link></li>
-                        </ul>
-                    </div>
-
-                    {/* Newsletter + Social */}
-                    <div className="space-y-4">
-                        <h4 className="text-sm font-semibold uppercase tracking-wider text-white">
-                            Stay Updated
-                        </h4>
-
-                        <p className="text-sm text-amber-200/80">
-                            Subscribe for offers & new cakes 🎂
-                        </p>
-
-                        <div className="flex">
-                            <input
-                                type="email"
-                                placeholder="Your email"
-                                className="w-full px-3 py-2 rounded-l-lg bg-white text-black outline-none border border-gray-300 focus:border-amber-500"
-                            />
-                            <button className="bg-amber-500 hover:bg-amber-600 px-4 rounded-r-lg">
-                                Subscribe
-                            </button>
-                        </div>
-
-                        {/* Social */}
-                        <div className="flex gap-4 pt-2">
-                            <a href="#" className="hover:text-white transition">Instagram</a>
-                            <a href="#" className="hover:text-white transition">Facebook</a>
-                            <a href="#" className="hover:text-white transition">TikTok</a>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Divider */}
-                <div className="mt-10 border-t border-amber-900 pt-6 flex flex-col md:flex-row justify-between items-center gap-3 text-xs text-amber-300">
-
-                    <p>© {new Date().getFullYear()} Fancy Cakes Patisserie. All rights reserved.</p>
-
-                    <div className="flex gap-4">
-                        <Link to="/privacy-policy" className="hover:text-white">Privacy Policy</Link>
-                        <Link to="/terms" className="hover:text-white">Terms</Link>
-                        <Link to="/faqs" className="hover:text-white">FAQs</Link>
-                    </div>
-
-                    <p className="text-amber-500/70">
-                        Developed by{' '}
-                        <a
-                            href="https://afromerica.org"
-                            target="_blank"
-                            rel="noreferrer"
-                            className="text-amber-400 hover:text-white font-semibold transition"
-                        >
-                            Afro-Merica
-                        </a>
-                    </p>
-                </div>
+            <div className="space-y-2 text-sm">
+              <a href="tel:+12407978542" className="flex items-center gap-2 hover:text-white transition">
+                <Phone size={15} className="shrink-0" /> +1 240-797-8542
+              </a>
+              <a href="mailto:info@fancycake.com" className="flex items-center gap-2 hover:text-white transition">
+                <Mail size={15} className="shrink-0" /> info@fancycake.com
+              </a>
+              <div className="flex items-start gap-2">
+                <MapPin size={15} className="shrink-0 mt-0.5" />
+                <span>9332 Georgia Ave, Silver Spring, MD 20910</span>
+              </div>
             </div>
-        </footer>
-    );
+          </div>
+
+          {/* Opening Hours */}
+          <FooterSection title="Opening Hours">
+            <ul className="text-sm text-amber-200/80 space-y-2">
+              <li className="flex items-center gap-2"><Clock size={14} className="shrink-0 text-amber-400" /> Mon–Fri: 9am – 5pm</li>
+              <li className="flex items-center gap-2"><Clock size={14} className="shrink-0 text-amber-400" /> Saturday: 10am – 6pm</li>
+              <li className="flex items-center gap-2"><Clock size={14} className="shrink-0 text-amber-400" /> Sunday: Closed</li>
+            </ul>
+            <button onClick={() => navigate('/shop')}
+              className="mt-4 w-full bg-amber-500 hover:bg-amber-400 text-white py-2.5 rounded-xl text-sm font-semibold transition">
+              Order Now 🍰
+            </button>
+          </FooterSection>
+
+          {/* Quick Links */}
+          <FooterSection title="Quick Links">
+            <ul className="space-y-2 text-sm text-amber-200/80">
+              {quickLinks.map(({ to, label }) => (
+                <li key={to}>
+                  <Link to={to} className="hover:text-white hover:pl-1 block transition-all">
+                    {label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </FooterSection>
+
+          {/* Newsletter */}
+          <FooterSection title="Stay Updated">
+            <p className="text-sm text-amber-200/80 mb-3">
+              Subscribe for offers & new cakes 🎂
+            </p>
+            {subscribed ? (
+              <div className="rounded-xl bg-amber-800/50 border border-amber-700 px-4 py-3 text-sm text-amber-200 text-center">
+                ✓ Thanks for subscribing!
+              </div>
+            ) : (
+              <form onSubmit={handleSubscribe} className="flex flex-col sm:flex-row gap-2">
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="Your email address"
+                  required
+                  className="flex-1 px-3 py-2.5 rounded-xl bg-white/10 border border-amber-800 text-white
+                    placeholder-amber-400/60 text-sm focus:outline-none focus:border-amber-500 transition"
+                />
+                <button type="submit"
+                  className="px-4 py-2.5 bg-amber-500 hover:bg-amber-400 text-white rounded-xl text-sm font-semibold transition shrink-0">
+                  Subscribe
+                </button>
+              </form>
+            )}
+            {/* Social */}
+            <div className="flex gap-4 pt-6">
+              <a href="#" className="hover:text-white transition">Instagram</a>
+              <a href="#" className="hover:text-white transition">Facebook</a>
+              <a href="#" className="hover:text-white transition">TikTok</a>
+            </div>
+          </FooterSection>
+        </div>
+
+        {/* ── Bottom bar ── */}
+        <div className="mt-8 border-t border-amber-900 pt-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-amber-300">
+
+          <p className="text-center sm:text-left">
+            © {new Date().getFullYear()} Fancy Cakes Patisserie. All rights reserved.
+          </p>
+
+          <div className="flex flex-wrap justify-center gap-3 sm:gap-4">
+            <Link to="/privacy-policy" className="hover:text-white transition">Privacy</Link>
+            <Link to="/terms" className="hover:text-white transition">Terms</Link>
+            <Link to="/faqs" className="hover:text-white transition">FAQs</Link>
+            <Link to="/return-policy" className="hover:text-white transition">Returns</Link>
+          </div>
+
+          <p className="text-amber-500/70 text-center">
+            Developed by{' '}
+            <a href="https://afromerica.org" target="_blank" rel="noreferrer"
+              className="text-amber-400 hover:text-white font-semibold transition">
+              Afro-Merica
+            </a>
+          </p>
+        </div>
+      </div>
+    </footer>
+  )
 }
 
 export default Footer;

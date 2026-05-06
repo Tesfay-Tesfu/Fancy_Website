@@ -501,11 +501,12 @@ export const submitProductReview = async ({ product_id, reviewer, reviewer_email
   }
 }
 
-// Fetch all approved reviews (for homepage display)
-export const fetchAllReviews = async (perPage = 100) => {
+// Fetch all approved reviews (for homepage display) — paginated
+export const fetchAllReviews = async (perPage = 10, page = 1) => {
   try {
     const url = new URL(`${config.baseURL}/wp-json/wc/v3/products/reviews`)
     url.searchParams.set('per_page', perPage)
+    url.searchParams.set('page', page)
     url.searchParams.set('status', 'approved')
 
     const response = await fetch(url.toString(), {
@@ -518,7 +519,11 @@ export const fetchAllReviews = async (perPage = 100) => {
       throw new Error(data.message || 'Failed to fetch reviews.')
     }
 
-    return await response.json()
+    const data        = await response.json()
+    const totalPages  = Number(response.headers.get('X-WP-TotalPages') || 1)
+    const total       = Number(response.headers.get('X-WP-Total') || 0)
+
+    return { data, totalPages, total }
   } catch (error) {
     console.error('Error fetching all reviews:', error)
     throw error
