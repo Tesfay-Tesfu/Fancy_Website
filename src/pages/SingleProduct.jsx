@@ -21,6 +21,7 @@ function SingleProduct() {
     const [relatedProducts, setRelatedProducts] = useState([])
     const [variations, setVariations] = useState([])
     const [currentPrice, setCurrentPrice] = useState(null)
+    const [currentRegularPrice, setCurrentRegularPrice] = useState(null)
     const [checkedAddons, setCheckedAddons] = useState({})
     const [attributeErrors, setAttributeErrors] = useState({})
     const [attributeTerms, setAttributeTerms] = useState({})
@@ -207,11 +208,14 @@ function SingleProduct() {
                         const vars = await fetchProductVariations(data.id)
                         setVariations(vars)
                         setCurrentPrice(data.price)
+                        setCurrentRegularPrice(data.regular_price || null)
                     } catch {
                         setCurrentPrice(data.price)
+                        setCurrentRegularPrice(data.regular_price || null)
                     }
                 } else {
                     setCurrentPrice(data.price)
+                    setCurrentRegularPrice(data.regular_price || null)
                 }
 
                 if (data.attributes?.length > 0) {
@@ -252,9 +256,14 @@ function SingleProduct() {
                 const match = variations.find((v) =>
                     v.attributes.some((a) => a.name === 'Size' && a.option === selectedSize)
                 )
-                if (match) setCurrentPrice(match.price)
+                if (match) {
+                    setCurrentPrice(match.price)
+                    // regular_price is the original price; if on sale, price < regular_price
+                    setCurrentRegularPrice(match.regular_price || null)
+                }
             } else {
                 setCurrentPrice(product.price)
+                setCurrentRegularPrice(product.regular_price || null)
             }
         }
     }, [selectedAttributes, variations, product])
@@ -288,6 +297,8 @@ function SingleProduct() {
     if (!product) return null
 
     const price = currentPrice ? `$${currentPrice}` : 'Price unavailable'
+    const isOnSale = currentRegularPrice &&
+        parseFloat(currentRegularPrice) > parseFloat(currentPrice || 0)
 
     return (
         <main className="mx-auto max-w-6xl px-6 pb-16 pt-6 sm:px-8">
@@ -346,7 +357,19 @@ function SingleProduct() {
                     </div>
 
                     <div>
-                        <p className="text-2xl font-semibold text-slate-900">{price}</p>
+                        {isOnSale ? (
+                            <div className="flex items-baseline gap-3">
+                                <p className="text-2xl font-bold text-red-600">{price}</p>
+                                <p className="text-base text-slate-400 line-through">
+                                    ${currentRegularPrice}
+                                </p>
+                                <span className="rounded-full bg-red-100 px-2 py-0.5 text-xs font-semibold text-red-600">
+                                    Save ${(parseFloat(currentRegularPrice) - parseFloat(currentPrice)).toFixed(2)}
+                                </span>
+                            </div>
+                        ) : (
+                            <p className="text-2xl font-semibold text-slate-900">{price}</p>
+                        )}
                     </div>
 
                     {/* ATTRIBUTES */}

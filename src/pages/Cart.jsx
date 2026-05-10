@@ -214,11 +214,11 @@ function Cart() {
                     {/* Line total */}
                     <div className="text-right">
                       <p className="text-base font-bold text-slate-900">
-                        £{(item.total_price * item.quantity).toFixed(2)}
+                        ${(item.total_price * item.quantity).toFixed(2)}
                       </p>
                       {item.quantity > 1 && (
                         <p className="text-xs text-slate-400">
-                          £{parseFloat(item.total_price).toFixed(2)} each
+                          ${parseFloat(item.total_price).toFixed(2)} each
                         </p>
                       )}
                     </div>
@@ -245,7 +245,7 @@ function Cart() {
                   )}
                 </span>
                 <span className="shrink-0 font-medium text-slate-800">
-                  £{(item.total_price * item.quantity).toFixed(2)}
+                  ${(item.total_price * item.quantity).toFixed(2)}
                 </span>
               </div>
             ))}
@@ -254,7 +254,7 @@ function Cart() {
           {/* Subtotal */}
           <div className="flex items-center justify-between text-sm">
             <span className="text-slate-500">Subtotal</span>
-            <span className="font-semibold text-slate-800">£{subtotal.toFixed(2)}</span>
+            <span className="font-semibold text-slate-800">${subtotal.toFixed(2)}</span>
           </div>
 
           <div className="flex items-center justify-between text-sm">
@@ -265,7 +265,7 @@ function Cart() {
           {/* Total */}
           <div className="flex items-center justify-between rounded-xl bg-amber-50 px-4 py-3">
             <span className="font-bold text-slate-900">Total</span>
-            <span className="text-xl font-bold text-amber-700">£{subtotal.toFixed(2)}</span>
+            <span className="text-xl font-bold text-amber-700">${subtotal.toFixed(2)}</span>
           </div>
 
           {/* Checkout button */}

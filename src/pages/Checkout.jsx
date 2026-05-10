@@ -97,7 +97,7 @@ function AddressForm({ fields, values, onChange, errors }) {
 }
 
 // ── DeliveryDatePicker component ─────────────────────────────────────────────
-function DeliveryDatePicker({ deliveryDate, setDeliveryDate }) {
+function DeliveryDatePicker({ deliveryDate, setDeliveryDate, label = 'Preferred Delivery Date', hint = 'We need at least 24 hours notice.' }) {
   const tomorrow = new Date()
   tomorrow.setDate(tomorrow.getDate() + 1)
   const minDate = tomorrow.toISOString().split('T')[0]
@@ -111,8 +111,8 @@ function DeliveryDatePicker({ deliveryDate, setDeliveryDate }) {
       <div className="flex items-center gap-2">
         <span className="text-base">📅</span>
         <div>
-          <p className="text-sm font-semibold text-slate-800">Preferred Delivery Date <span className="text-red-500">*</span></p>
-          <p className="text-xs text-slate-400">We need at least 24 hours notice. Orders placed before 2pm may qualify for next-day delivery.</p>
+          <p className="text-sm font-semibold text-slate-800">{label} <span className="text-red-500">*</span></p>
+          <p className="text-xs text-slate-400">{hint}</p>
         </div>
       </div>
       <input
@@ -161,6 +161,7 @@ export default function Checkout() {
   const [selectedPayment,  setSelectedPayment]  = useState(null)
   const [methodsLoading,   setMethodsLoading]   = useState(false)
   const [deliveryDate,     setDeliveryDate]      = useState('')  // ISO date string
+  const [postcode,         setPostcode]          = useState('')  // for hand delivery
 
   // Order state
   const [placing,      setPlacing]      = useState(false)
@@ -239,7 +240,15 @@ export default function Checkout() {
     }
 
     if (step === 1 && !selectedShipping) return
-    if (step === 1 && !deliveryDate) return   // delivery date required
+    if (step === 1 && selectedShipping) {
+      const title = (selectedShipping.title || selectedShipping.method_id || '').toLowerCase()
+      const isPickup   = title.includes('pickup') || title.includes('pick up') || title.includes('collection')
+      const isDelivery = !isPickup
+      // Date required only for Store Pickup
+      if (isPickup && !deliveryDate) return
+      // Postcode required only for Hand Delivery
+      if (isDelivery && !postcode.trim()) return
+    }
     if (step === 3 && !selectedPayment)  return
 
     setStep((s) => Math.min(s + 1, STEPS.length - 1))
@@ -283,9 +292,10 @@ export default function Checkout() {
       }] : [],
       customer_id: user?.id ? parseInt(user.id) : 0,
       // Store requested delivery date as order meta and customer note
-      meta_data: deliveryDate ? [
-        { key: '_requested_delivery_date', value: deliveryDate }
-      ] : [],
+      meta_data: [
+        ...(deliveryDate ? [{ key: '_requested_delivery_date', value: deliveryDate }] : []),
+        ...(postcode     ? [{ key: '_delivery_postcode',       value: postcode }]     : []),
+      ],
       customer_note: deliveryDate
         ? `Requested delivery date: ${new Date(deliveryDate).toLocaleDateString('en-GB', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' })}`
         : '',
@@ -325,7 +335,7 @@ export default function Checkout() {
           <div className="rounded-2xl border border-slate-200 bg-white p-6 w-full text-left space-y-2 text-sm">
             <p><span className="font-semibold text-slate-600">Order ID:</span> #{orderSuccess.id}</p>
             <p><span className="font-semibold text-slate-600">Status:</span> {orderSuccess.status}</p>
-            <p><span className="font-semibold text-slate-600">Total:</span> £{parseFloat(orderSuccess.total).toFixed(2)}</p>
+            <p><span className="font-semibold text-slate-600">Total:</span> ${parseFloat(orderSuccess.total).toFixed(2)}</p>
             <p><span className="font-semibold text-slate-600">Payment:</span> {orderSuccess.payment_method_title}</p>
           </div>
           <div className="flex gap-3">
@@ -464,20 +474,77 @@ export default function Checkout() {
                             <p className="font-semibold text-slate-800">{method.title || method.method_id}</p>
                           </div>
                           <span className={`text-sm font-bold ${isSelected ? 'text-amber-600' : 'text-slate-600'}`}>
-                            {cost && parseFloat(cost) > 0 ? `£${parseFloat(cost).toFixed(2)}` : 'Free'}
+                            {cost && parseFloat(cost) > 0 ? `$${parseFloat(cost).toFixed(2)}` : 'Free'}
                           </span>
                         </label>
                       )
                     })}
                   </div>
 
-                  {/* ── Delivery date picker ── */}
-                  {selectedShipping && (
-                    <DeliveryDatePicker
-                      deliveryDate={deliveryDate}
-                      setDeliveryDate={setDeliveryDate}
-                    />
-                  )}
+                  {/* ── Method-specific info + date/postcode ── */}
+                  {selectedShipping && (() => {
+                    const title = (selectedShipping.title || selectedShipping.method_id || '').toLowerCase()
+                    const isPickup   = title.includes('pickup') || title.includes('pick up') || title.includes('collection')
+                    const isDelivery = !isPickup
+
+                    return (
+                      <div className="mt-5 space-y-4">
+
+                        {/* Info banner */}
+                        <div className={`rounded-2xl border-2 p-4 space-y-2
+                          ${isPickup ? 'border-blue-200 bg-blue-50' : 'border-amber-200 bg-amber-50'}`}>
+                          <p className={`text-sm font-semibold ${isPickup ? 'text-blue-800' : 'text-amber-800'}`}>
+                            {isPickup ? '🏪 Store Pickup Information' : '🚚 Hand Delivery Information'}
+                          </p>
+                          {isPickup ? (
+                            <ul className="text-xs text-blue-700 space-y-1">
+                              <li>• Pickup times: <strong>Monday – Friday 2pm – 4pm</strong></li>
+                              <li>• Pickup times: <strong>Saturday 10am – 11am</strong></li>
+                              <li>• Please bring your order confirmation email.</li>
+                            </ul>
+                          ) : (
+                            <ul className="text-xs text-amber-700 space-y-1">
+                              <li>• We deliver <strong>8am – 6pm, Tuesday – Saturday</strong></li>
+                              <li>• We deliver <strong>8am – 2pm on Sundays</strong></li>
+                              <li>• You'll receive a <strong>2-hour delivery slot</strong> by email the day before your delivery.</li>
+                              <li>• Sadly, we're unable to take specific time requests.</li>
+                            </ul>
+                          )}
+                        </div>
+
+                        {/* Postcode field — hand delivery only */}
+                        {isDelivery && (
+                          <div>
+                            <label className="block text-xs font-semibold text-slate-500 mb-1.5">
+                              Delivery Postcode <span className="text-red-500">*</span>
+                            </label>
+                            <input
+                              type="text"
+                              value={postcode}
+                              onChange={(e) => setPostcode(e.target.value.toUpperCase())}
+                              placeholder="e.g. MD20 1AA"
+                              className={`w-full rounded-xl border px-4 py-2.5 text-sm text-slate-800 uppercase
+                                focus:outline-none focus:ring-2 focus:ring-amber-300/40 focus:border-amber-400 transition
+                                ${!postcode ? 'border-red-300 bg-red-50' : 'border-slate-200'}`}
+                            />
+                            {!postcode && (
+                              <p className="mt-1 text-xs text-red-500">⚠ Please enter your delivery postcode.</p>
+                            )}
+                          </div>
+                        )}
+
+                        {/* Date picker — only for Store Pickup */}
+                        {isPickup && (
+                          <DeliveryDatePicker
+                            deliveryDate={deliveryDate}
+                            setDeliveryDate={setDeliveryDate}
+                            label="Preferred Pickup Date"
+                            hint="Choose a date when we are open for pickup."
+                          />
+                        )}
+                      </div>
+                    )
+                  })()}
                 </>
               )}
             </div>
@@ -572,7 +639,7 @@ export default function Checkout() {
                         <p className="text-xs text-slate-500 mt-0.5">Qty: {item.quantity}</p>
                       </div>
                       <p className="text-sm font-bold text-slate-800 shrink-0">
-                        £{(item.total_price * item.quantity).toFixed(2)}
+                        ${(item.total_price * item.quantity).toFixed(2)}
                       </p>
                     </div>
                   ))}
@@ -603,7 +670,7 @@ export default function Checkout() {
                     {selectedShipping?.title || selectedShipping?.method_id || '—'}
                   </p>
                   <p className="text-sm text-amber-600 font-bold">
-                    {shippingCost > 0 ? `£${shippingCost.toFixed(2)}` : 'Free'}
+                    {shippingCost > 0 ? `$${shippingCost.toFixed(2)}` : 'Free'}
                   </p>
                   {deliveryDate && (
                     <p className="text-xs text-slate-500 mt-1">
@@ -623,11 +690,11 @@ export default function Checkout() {
               <section className="rounded-xl border border-slate-200 bg-white p-4 space-y-2">
                 <div className="flex justify-between text-sm text-slate-600">
                   <span>Subtotal</span>
-                  <span className="font-medium">£{subtotal.toFixed(2)}</span>
+                  <span className="font-medium">${subtotal.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between text-sm text-slate-600">
                   <span>Shipping</span>
-                  <span className="font-medium">{shippingCost > 0 ? `£${shippingCost.toFixed(2)}` : 'Free'}</span>
+                  <span className="font-medium">{shippingCost > 0 ? `$${shippingCost.toFixed(2)}` : 'Free'}</span>
                 </div>
                 <div className="flex justify-between text-base font-bold text-slate-900 pt-2 border-t border-slate-100">
                   <span>Total</span>
