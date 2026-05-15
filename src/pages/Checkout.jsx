@@ -47,7 +47,7 @@ const SHIPPING_FIELDS = [
   { name: 'address_2',  label: 'Address Line 2', half: false },
   { name: 'city',       label: 'City',           half: true },
   { name: 'state',      label: 'State / County', half: true },
-  { name: 'postcode',   label: 'Postcode',       half: true },
+  { name: 'postcode',   label: 'Zipcode',       half: true },
   { name: 'country',    label: 'Country (ISO)',  half: true },
 ]
 
@@ -61,7 +61,7 @@ const BILLING_FIELDS = [
   { name: 'address_2',  label: 'Address Line 2', half: false },
   { name: 'city',       label: 'City',           half: true },
   { name: 'state',      label: 'State / County', half: true },
-  { name: 'postcode',   label: 'Postcode',       half: true },
+  { name: 'postcode',   label: 'Zipcode',       half: true },
   { name: 'country',    label: 'Country (ISO)',  half: true },
 ]
 
@@ -162,6 +162,14 @@ export default function Checkout() {
   const [methodsLoading,   setMethodsLoading]   = useState(false)
   const [deliveryDate,     setDeliveryDate]      = useState('')  // ISO date string
   const [postcode,         setPostcode]          = useState('')  // for hand delivery
+
+  // Custom order note fields
+  const [orderNote, setOrderNote] = useState({
+    birthdayName:    '',
+    birthdayDate:    '',
+    cakeMessage:     '',
+    specialRequests: '',
+  })
 
   // Order state
   const [placing,      setPlacing]      = useState(false)
@@ -267,14 +275,27 @@ export default function Checkout() {
     setOrderError(null)
 
     const lineItems = cart.map((item) => {
+      // total_price already includes addon amounts (set in SingleProduct handleAddToCart)
+      const lineTotal    = (item.total_price * item.quantity).toFixed(2)
+      const lineSubtotal = lineTotal
+
       const li = {
         product_id: item.product_id,
         quantity:   item.quantity,
+        subtotal:   lineSubtotal,
+        total:      lineTotal,
       }
       if (item.variation_id) li.variation_id = item.variation_id
+
+      // Build meta_data: variation description + addon breakdown
+      const meta = []
       if (item.variation_description) {
-        li.meta_data = [{ key: 'variation_description', value: item.variation_description }]
+        meta.push({ key: 'variation_description', value: item.variation_description })
       }
+      // Store the per-unit price so the admin can see the addon-inclusive price
+      meta.push({ key: '_unit_price_with_addons', value: String(item.total_price) })
+      if (meta.length) li.meta_data = meta
+
       return li
     })
 
@@ -293,12 +314,20 @@ export default function Checkout() {
       customer_id: user?.id ? parseInt(user.id) : 0,
       // Store requested delivery date as order meta and customer note
       meta_data: [
-        ...(deliveryDate ? [{ key: '_requested_delivery_date', value: deliveryDate }] : []),
-        ...(postcode     ? [{ key: '_delivery_postcode',       value: postcode }]     : []),
+        ...(deliveryDate          ? [{ key: '_requested_delivery_date', value: deliveryDate }]                    : []),
+        ...(postcode              ? [{ key: '_delivery_postcode',       value: postcode }]                        : []),
+        ...(orderNote.birthdayName ? [{ key: '_birthday_name',          value: orderNote.birthdayName }]          : []),
+        ...(orderNote.birthdayDate ? [{ key: '_birthday_date',          value: orderNote.birthdayDate }]          : []),
+        ...(orderNote.cakeMessage  ? [{ key: '_cake_message',           value: orderNote.cakeMessage }]           : []),
+        ...(orderNote.specialRequests ? [{ key: '_special_requests',    value: orderNote.specialRequests }]       : []),
       ],
-      customer_note: deliveryDate
-        ? `Requested delivery date: ${new Date(deliveryDate).toLocaleDateString('en-GB', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' })}`
-        : '',
+      customer_note: [
+        deliveryDate          ? `Delivery/Pickup date: ${new Date(deliveryDate).toLocaleDateString('en-GB', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' })}` : '',
+        orderNote.birthdayName ? `Birthday name: ${orderNote.birthdayName}` : '',
+        orderNote.birthdayDate ? `Birthday date: ${orderNote.birthdayDate}` : '',
+        orderNote.cakeMessage  ? `Cake message: ${orderNote.cakeMessage}`   : '',
+        orderNote.specialRequests ? `Special requests: ${orderNote.specialRequests}` : '',
+      ].filter(Boolean).join('\n') || '',
     }
 
     try {
@@ -700,6 +729,92 @@ export default function Checkout() {
                   <span>Total</span>
                   <span className="text-amber-600">${total.toFixed(2)}</span>
                 </div>
+              </section>
+
+              {/* ── Custom Order Note ── */}
+              <section className="rounded-2xl border-2 border-amber-100 bg-amber-50 p-5 space-y-4">
+                <div>
+                  <h3 className="text-sm font-bold text-slate-800 flex items-center gap-2">
+                    🎂 Order Personalisation <span className="text-xs font-normal text-slate-400">(optional)</span>
+                  </h3>
+                  <p className="text-xs text-slate-500 mt-0.5">
+                    Add any special details for your cake — these will be attached to your order.
+                  </p>
+                </div>
+
+                <div className="grid sm:grid-cols-2 gap-4">
+                  {/* Birthday / recipient name */}
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-500 mb-1.5">
+                      Name on Cake / Recipient Name
+                    </label>
+                    <input
+                      type="text"
+                      value={orderNote.birthdayName}
+                      onChange={(e) => setOrderNote((p) => ({ ...p, birthdayName: e.target.value }))}
+                      placeholder="e.g. Happy Birthday Sarah"
+                      className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm text-slate-800
+                        placeholder-slate-300 focus:outline-none focus:ring-2 focus:ring-amber-300/40 focus:border-amber-400 transition bg-white"
+                    />
+                  </div>
+
+                  {/* Birthday / event date */}
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-500 mb-1.5">
+                      Event / Birthday Date
+                    </label>
+                    <input
+                      type="date"
+                      value={orderNote.birthdayDate}
+                      onChange={(e) => setOrderNote((p) => ({ ...p, birthdayDate: e.target.value }))}
+                      className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm text-slate-800
+                        focus:outline-none focus:ring-2 focus:ring-amber-300/40 focus:border-amber-400 transition bg-white"
+                    />
+                  </div>
+                </div>
+
+                {/* Iced message / cake inscription */}
+                <div>
+                  <label className="block text-xs font-semibold text-slate-500 mb-1.5">
+                    Iced Message / Cake Inscription
+                  </label>
+                  <input
+                    type="text"
+                    value={orderNote.cakeMessage}
+                    onChange={(e) => setOrderNote((p) => ({ ...p, cakeMessage: e.target.value }))}
+                    placeholder="e.g. Happy 30th Birthday! 🎉"
+                    maxLength={60}
+                    className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm text-slate-800
+                      placeholder-slate-300 focus:outline-none focus:ring-2 focus:ring-amber-300/40 focus:border-amber-400 transition bg-white"
+                  />
+                  <p className="mt-1 text-xs text-slate-400 text-right">{orderNote.cakeMessage.length}/60 characters</p>
+                </div>
+
+                {/* Special requests */}
+                <div>
+                  <label className="block text-xs font-semibold text-slate-500 mb-1.5">
+                    Special Requests / Additional Notes
+                  </label>
+                  <textarea
+                    value={orderNote.specialRequests}
+                    onChange={(e) => setOrderNote((p) => ({ ...p, specialRequests: e.target.value }))}
+                    rows={3}
+                    placeholder="Any allergies, colour preferences, design requests, or other notes for our team…"
+                    className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm text-slate-800
+                      placeholder-slate-300 focus:outline-none focus:ring-2 focus:ring-amber-300/40 focus:border-amber-400 transition resize-none bg-white"
+                  />
+                </div>
+
+                {/* Summary of filled fields */}
+                {(orderNote.birthdayName || orderNote.birthdayDate || orderNote.cakeMessage || orderNote.specialRequests) && (
+                  <div className="rounded-xl bg-white border border-amber-200 px-4 py-3 space-y-1">
+                    <p className="text-xs font-semibold text-amber-700 mb-1.5">📋 Order note preview:</p>
+                    {orderNote.birthdayName    && <p className="text-xs text-slate-600">• Name: <strong>{orderNote.birthdayName}</strong></p>}
+                    {orderNote.birthdayDate    && <p className="text-xs text-slate-600">• Event date: <strong>{new Date(orderNote.birthdayDate + 'T00:00:00').toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' })}</strong></p>}
+                    {orderNote.cakeMessage     && <p className="text-xs text-slate-600">• Message: <strong>"{orderNote.cakeMessage}"</strong></p>}
+                    {orderNote.specialRequests && <p className="text-xs text-slate-600">• Notes: <strong>{orderNote.specialRequests}</strong></p>}
+                  </div>
+                )}
               </section>
 
               {/* Order error */}

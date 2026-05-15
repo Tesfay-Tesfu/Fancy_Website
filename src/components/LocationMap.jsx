@@ -14,19 +14,19 @@ const info = [
   {
     icon: Phone,
     label: 'Phone',
-    value: '+1 240-797-8542',
-    href: 'tel:+12407978542',
+    value: '+1 240-531-2733',
+    href: 'tel:+12405312733',
   },
   {
     icon: Mail,
     label: 'Email',
-    value: 'info@fancycake.com',
-    href: 'mailto:info@fancycake.com',
+    value: 'fancycakesbyselam@gmail.com',
+    href: 'mailto:fancycakesbyselam@gmail.com',
   },
   {
     icon: Clock,
     label: 'Hours',
-    value: 'Mon–Fri 9am–5pm · Sat 10am–6pm',
+    value: 'Monday: Closed, Tue–Sat 10am–7pm , Sunday 11am–6pm',
     href: null,
   },
 ]

@@ -38,7 +38,7 @@ export default function AboutUs() {
       <div className="grid gap-8 lg:grid-cols-2 mb-16 items-center">
         <div className="space-y-4 text-slate-600 leading-relaxed text-sm">
           <p>
-            Our journey began in 2015 when our founder, Sarah, started baking custom birthday cakes for friends and family. Word spread quickly — not just about the taste, but about the artistry and attention to detail that went into every creation.
+            Our journey began in 2018 when our founder, Selam, started baking custom birthday cakes for friends and family. Word spread quickly — not just about the taste, but about the artistry and attention to detail that went into every creation.
           </p>
           <p>
             By 2018 we had opened our first dedicated kitchen, and today we serve hundreds of customers each month across the local area and beyond. From intimate birthday cakes to elaborate multi-tier wedding centrepieces, we pour the same love into every order.
@@ -50,7 +50,7 @@ export default function AboutUs() {
         <div className="rounded-3xl bg-amber-50 border border-amber-100 p-8 text-center space-y-6">
           <div className="grid grid-cols-2 gap-4">
             {[
-              { value: '2015', label: 'Founded' },
+              { value: '2018', label: 'Founded' },
               { value: '5,000+', label: 'Cakes Made' },
               { value: '4.9★', label: 'Average Rating' },
               { value: '100%', label: 'Handmade' },
@@ -99,14 +99,14 @@ export default function AboutUs() {
       </div>
 
       {/* CTA */}
-      <div className="rounded-3xl bg-amber-950 text-white p-10 text-center space-y-4">
+      <div className="rounded-3xl bg-black text-white p-10 text-center space-y-4">
         <h2 className="text-2xl font-extrabold">Ready to order your dream cake?</h2>
         <p className="text-amber-200 text-sm max-w-md mx-auto">Browse our full collection or get in touch to discuss a custom creation.</p>
         <div className="flex flex-wrap gap-3 justify-center">
           <Link to="/shop" className="rounded-full bg-amber-500 hover:bg-amber-400 px-6 py-2.5 text-sm font-bold transition">
             Shop Now
           </Link>
-          <a href="mailto:info@fancycake.com" className="rounded-full border border-amber-700 hover:border-amber-500 px-6 py-2.5 text-sm font-bold text-amber-200 hover:text-white transition">
+          <a href="mailto:fancycakesbyselam@gmail.com " className="rounded-full border border-amber-700 hover:border-amber-500 px-6 py-2.5 text-sm font-bold text-amber-200 hover:text-white transition">
             Contact Us
           </a>
         </div>

@@ -53,7 +53,7 @@ export default function PrivacyPolicy() {
       </div>
 
       {/* Sections */}
-      <div className="space-y-6">
+      <div className="space-y-6 text-center">
         {sections.map(({ title, body }) => (
           <div key={title} className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
             <h2 className="text-base font-bold text-slate-900 mb-2">{title}</h2>
@@ -66,7 +66,7 @@ export default function PrivacyPolicy() {
       <div className="mt-8 rounded-2xl bg-amber-50 border border-amber-200 p-6 text-center">
         <p className="text-sm text-slate-700">Questions about this policy?</p>
         <a href="mailto:info@fancycake.com" className="mt-2 inline-block text-sm font-semibold text-amber-700 hover:text-amber-800 transition">
-          info@fancycake.com
+          fancycakesbyselam@gmail.com
         </a>
       </div>
     </main>

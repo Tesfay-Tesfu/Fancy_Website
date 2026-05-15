@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { fetchProducts, fetchCategories, fetchSizeAttributes, fetchFlavourAttributes } from '../services/woocommerce'
-import { Heart } from 'lucide-react'
+import { Heart, ChevronDown, ChevronUp } from 'lucide-react'
 import { toggleWishlist, getWishlist } from '../utils/wishlist'
 import { addToCart } from '../utils/cart'
 import usePageTitle from '../hooks/usePageTitle'
@@ -27,7 +27,12 @@ function Shop() {
   const [error, setError] = useState(null)
   const [wishlist, setWishlist] = useState(getWishlist())
   const [cartToasts, setCartToasts] = useState({}) // { productId: 'added' | 'exists' }
+  const [expandedCategories, setExpandedCategories] = useState({})
   const searchQuery = searchParams.get('search') || ''
+
+  // Category hierarchy helpers
+  const childrenOf = (parentId) => categories.filter(c => c.parent === parentId)
+  const topLevel = categories.filter(c => c.parent === 0)
 
   // Sync wishlist state
   useEffect(() => {
@@ -38,13 +43,13 @@ function Shop() {
 
   const handleAddToCart = (product) => {
     const result = addToCart({
-      name:                  product.name,
-      product_id:            product.id,
-      variation_id:          null,
-      quantity:              1,
-      total_price:           parseFloat(product.price) || 0,
-      image_url:             product.image,
-      permalink:             `/products/${product.slug}`,
+      name: product.name,
+      product_id: product.id,
+      variation_id: null,
+      quantity: 1,
+      total_price: parseFloat(product.price) || 0,
+      image_url: product.image,
+      permalink: `/products/${product.slug}`,
       variation_description: '',
     })
     const kind = result.duplicate ? 'exists' : 'added'
@@ -104,16 +109,16 @@ function Shop() {
 
   // Map WooCommerce products to display format
   const displayProducts = products.map(product => ({
-    id:          product.id,
-    slug:        product.slug,
-    name:        product.name,
-    type:        product.type,                                          // 'simple' | 'variable'
-    category:    product.categories?.[0]?.name || 'Uncategorized',
-    price:       product.price || '',                                   // empty for variable
-    badge:       product.featured ? 'Featured' : 'New',
+    id: product.id,
+    slug: product.slug,
+    name: product.name,
+    type: product.type,                                          // 'simple' | 'variable'
+    category: product.categories?.[0]?.name || 'Uncategorized',
+    price: product.price || '',                                   // empty for variable
+    badge: product.featured ? 'Featured' : 'New',
     description: product.short_description || '',
-    image:       product.images?.[0]?.src || 'https://via.placeholder.com/300',
-    rating:      product.average_rating ? parseFloat(product.average_rating) : 0,
+    image: product.images?.[0]?.src || 'https://via.placeholder.com/300',
+    rating: product.average_rating ? parseFloat(product.average_rating) : 0,
   }))
 
   if (loading) {
@@ -169,33 +174,110 @@ function Shop() {
 
       <div className="grid gap-8 lg:grid-cols-[300px_1fr]">
         {/* Sidebar */}
-        <aside className="space-y-6 rounded-3xl bg-white p-6 shadow-sm ring-1 ring-slate-200">
+        <aside className="space-y-6 rounded-3xl bg-white p-3 shadow-sm ring-1 ring-slate-200">
           <div>
             <h2 className="text-lg font-semibold text-slate-900">Filter by</h2>
             <p className="mt-2 text-sm text-slate-500">Refine your search without leaving the page.</p>
           </div>
 
           {/* Category */}
-          <div className="rounded-3xl border border-slate-200 bg-slate-50 p-5">
+          <div className="rounded-2xl border border-slate-200 bg-slate-50 p-5">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-semibold text-slate-900">Category</p>
                 <p className="text-xs text-slate-500">Choose one or more</p>
               </div>
-              <button onClick={() => setSelectedCategories([])} className="text-xs font-semibold text-amber-600 hover:text-amber-700">Clear</button>
+
+              <button
+                onClick={() => setSelectedCategories([])}
+                className="text-xs font-semibold text-amber-600 hover:text-amber-700"
+              >
+                Clear
+              </button>
             </div>
-            <div className="mt-5 max-h-64 overflow-y-auto space-y-3">
-              {categories.map((category) => {
+
+            <div className="mt-5 space-y-3 max-h-72 overflow-y-auto pr-1">
+              {topLevel.map((category) => {
                 const isSelected = selectedCategories.includes(category.id)
+                const children = childrenOf(category.id)
+                const hasChildren = children.length > 0
+                const isExpanded = !!expandedCategories[category.id]
+
                 return (
-                  <button
-                    key={category.id}
-                    onClick={() => setSelectedCategories(prev => isSelected ? prev.filter(id => id !== category.id) : [...prev, category.id])}
-                    className={`flex w-full items-center justify-between rounded-2xl border px-4 py-3 text-left text-sm font-medium transition ${isSelected ? 'border-amber-600 bg-amber-50 text-amber-900' : 'border-slate-200 bg-white text-slate-800 hover:border-amber-300'}`}
-                  >
-                    <span>{category.name}</span>
-                    <span className="text-xs font-semibold text-slate-500">{category.count || 0}</span>
-                  </button>
+                  <div key={category.id} className="rounded-2xl bg-white border border-slate-200 overflow-hidden">
+
+                    {/* Parent */}
+                    <div className="flex items-center justify-between">
+                      <button
+                        onClick={() =>
+                          setSelectedCategories((prev) =>
+                            isSelected
+                              ? prev.filter((id) => id !== category.id)
+                              : [...prev, category.id]
+                          )
+                        }
+                        className={`flex flex-1 items-center justify-between px-4 py-3 text-left text-sm font-medium transition ${isSelected
+                          ? "bg-amber-50 text-amber-900"
+                          : "text-slate-800 hover:bg-slate-50"
+                          }`}
+                      >
+                        <span>{category.name}</span>
+                        <span className="text-xs text-slate-500">
+                          {category.count || 0}
+                        </span>
+                      </button>
+
+                      {hasChildren && (
+                        <button
+                          onClick={() =>
+                            setExpandedCategories((prev) => ({
+                              ...prev,
+                              [category.id]: !prev[category.id],
+                            }))
+                          }
+                          className="px-3 text-slate-500 hover:text-amber-600"
+                        >
+                          {isExpanded ? "−" : "+"}
+                        </button>
+                      )}
+                    </div>
+
+                    {/* Children (SMART UX) */}
+                    {hasChildren && isExpanded && (
+                      <div className="border-t border-slate-100 bg-slate-50 px-4 py-3">
+                        <div className="flex flex-wrap gap-2">
+                          {children.map((child) => {
+                            const isChildSelected = selectedCategories.includes(child.id)
+
+                            return (
+                              <button
+                                key={child.id}
+                                onClick={() =>
+                                  setSelectedCategories((prev) =>
+                                    isChildSelected
+                                      ? prev.filter((id) => id !== child.id)
+                                      : [...prev, child.id]
+                                  )
+                                }
+                                className={`text-xs px-3 py-1.5 rounded-full border transition flex items-center gap-2 ${isChildSelected
+                                    ? "bg-amber-600 text-white border-amber-600"
+                                    : "bg-white text-slate-700 border-slate-200 hover:border-amber-300"
+                                  }`}
+                              >
+                                <span>{child.name}</span>
+                                <span className={`text-[10px] px-1.5 py-0.5 rounded-full ${isChildSelected
+                                    ? "bg-white/20 text-white"
+                                    : "bg-slate-100 text-slate-500"
+                                  }`}>
+                                  {child.count || 0}
+                                </span>
+                              </button>
+                            )
+                          })}
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 )
               })}
             </div>

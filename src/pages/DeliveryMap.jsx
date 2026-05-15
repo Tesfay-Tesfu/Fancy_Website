@@ -282,19 +282,27 @@ export default function DeliveryMap() {
       {/* Fullscreen map modal */}
       {mapZoomed && (
         <>
-          <div className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4"
-            onClick={() => setMapZoomed(false)}>
-            <div className="relative max-w-5xl w-full" onClick={(e) => e.stopPropagation()}>
+          <div
+            className="fixed inset-0 bg-black/85 z-50 flex items-center justify-center p-4 overflow-auto"
+            onClick={() => setMapZoomed(false)}
+          >
+            <div
+              className="relative w-full max-w-5xl my-auto"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Close button */}
               <button
                 onClick={() => setMapZoomed(false)}
-                className="absolute -top-10 right-0 text-white/80 hover:text-white text-sm font-medium flex items-center gap-1 transition"
+                className="absolute -top-10 right-0 text-white/80 hover:text-white text-sm font-medium flex items-center gap-1.5 transition"
               >
                 ✕ Close
               </button>
+
+              {/* Image — object-contain so nothing is cropped */}
               <img
                 src={deliveryMap}
                 alt="Delivery coverage map — full size"
-                className="w-full h-auto rounded-2xl shadow-2xl"
+                className="w-full h-auto max-h-[90vh] object-contain rounded-2xl shadow-2xl"
               />
             </div>
           </div>

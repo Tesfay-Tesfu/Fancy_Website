@@ -45,7 +45,7 @@ function Footer() {
   }
 
   return (
-    <footer className="bg-amber-950 text-amber-100">
+    <footer className="bg-black text-amber-100">
       <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
 
         {/* ── Top grid ── */}
@@ -64,10 +64,10 @@ function Footer() {
 
             <div className="space-y-2 text-sm">
               <a href="tel:+12407978542" className="flex items-center gap-2 hover:text-white transition">
-                <Phone size={15} className="shrink-0" /> +1 240-797-8542
+                <Phone size={15} className="shrink-0" /> +1 240-531-2733
               </a>
               <a href="mailto:info@fancycake.com" className="flex items-center gap-2 hover:text-white transition">
-                <Mail size={15} className="shrink-0" /> info@fancycake.com
+                <Mail size={15} className="shrink-0" /> fancycakesbyselam@gmail.com
               </a>
               <div className="flex items-start gap-2">
                 <MapPin size={15} className="shrink-0 mt-0.5" />
@@ -79,12 +79,12 @@ function Footer() {
           {/* Opening Hours */}
           <FooterSection title="Opening Hours">
             <ul className="text-sm text-amber-200/80 space-y-2">
-              <li className="flex items-center gap-2"><Clock size={14} className="shrink-0 text-amber-400" /> Mon–Fri: 9am – 5pm</li>
-              <li className="flex items-center gap-2"><Clock size={14} className="shrink-0 text-amber-400" /> Saturday: 10am – 6pm</li>
-              <li className="flex items-center gap-2"><Clock size={14} className="shrink-0 text-amber-400" /> Sunday: Closed</li>
+              <li className="flex items-center gap-2"><Clock size={14} className="shrink-0 text-amber-400" /> Monday: Closed</li>
+              <li className="flex items-center gap-2"><Clock size={14} className="shrink-0 text-amber-400" /> Tue- Sat: 10:00 am – 7:00 pm</li>
+              <li className="flex items-center gap-2"><Clock size={14} className="shrink-0 text-amber-400" /> Sunday: 11:00 am - 6:00 pm</li>
             </ul>
             <button onClick={() => navigate('/shop')}
-              className="mt-4 w-full bg-amber-500 hover:bg-amber-400 text-white py-2.5 rounded-xl text-sm font-semibold transition">
+              className="mt-4 w-40 bg-amber-500 hover:bg-amber-400 text-white py-2.5 rounded-xl text-sm font-semibold transition">
               Order Now 🍰
             </button>
           </FooterSection>

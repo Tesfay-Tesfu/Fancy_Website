@@ -139,23 +139,24 @@ function Header() {
     <div className="sticky top-0 z-50 w-full">
 
       {/* ── Top info bar ── */}
-      <div className="bg-amber-950 text-amber-100 text-xs">
+      <div className="bg-black text-amber-100 text-xs">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-2 gap-2">
           <div className="flex items-center gap-3 sm:gap-5 min-w-0">
             <a href="tel:+12407978542" className="flex items-center gap-1.5 hover:text-white transition">
               <Phone size={12} />
-              +1 240-797-8542
+              +1 240-531-2733
             </a>
             <a href="mailto:info@fancycake.com"
               className="hidden sm:flex items-center gap-1.5 hover:text-white transition">
               <Mail size={11} />
-              info@fancycake.com
+              fancycakesbyselam@gmail.com
             </a>
           </div>
           <div className="hidden md:flex items-center gap-3 text-amber-300 shrink-0">
-            <span>Mon–Fri: 9am–5pm</span>
+            <span>Monday: Closed</span>
             <span className="text-amber-700">|</span>
-            <span>Sat: 10am–6pm</span>
+            <span>Tue - Sat: 10:00 am – 7:00 pm</span>
+            <span>Sunday:11:00 am - 6:00 pm</span>
           </div>
         </div>
       </div>
@@ -205,6 +206,7 @@ function Header() {
 
             {/* Desktop nav links */}
             <nav className="hidden md:flex items-center gap-1 text-sm font-medium mr-1">
+              <Link to="/"     className="px-3 py-2 hover:bg-amber-50 rounded-full transition">Home</Link>
               <Link to="/shop"     className="px-3 py-2 hover:bg-amber-50 rounded-full transition">Shop</Link>
               <Link to="/delivery" className="px-3 py-2 hover:bg-amber-50 rounded-full transition">Delivery</Link>
               <Link to="/about"    className="px-3 py-2 hover:bg-amber-50 rounded-full transition">About</Link>
@@ -227,11 +229,6 @@ function Header() {
               title={isLoggedIn ? firstName : 'Sign in'}
             >
               <User size={20} />
-              {isLoggedIn && (
-                <span className="hidden lg:block text-xs font-medium text-slate-700 max-w-[80px] truncate">
-                  {firstName}
-                </span>
-              )}
             </button>
 
             {/* Cart */}
@@ -277,6 +274,7 @@ function Header() {
             {/* Mobile nav links */}
             <nav className="grid grid-cols-2 gap-2 text-sm font-medium">
               {[
+                 { to: '/',              label: '🏠 Home' },
                 { to: '/shop',           label: '🛍 Shop' },
                 { to: '/delivery',       label: '🚚 Delivery' },
                 { to: '/about',          label: '🎂 About Us' },

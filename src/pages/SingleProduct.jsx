@@ -151,12 +151,28 @@ function SingleProduct() {
         const addonFields = getAddonFields(product.meta_data)
         const variationDescription = buildVariationDescription(selectedAttributes, checkedAddons, addonFields)
 
+        // Calculate addon price: sum pricing_amount of all checked choices
+        let addonTotal = 0
+        addonFields.forEach((field) => {
+            field.options.choices.forEach((choice) => {
+                if (checkedAddons[field.id]?.[choice.slug]) {
+                    const amount = parseFloat(choice.pricing_amount) || 0
+                    if (choice.pricing_type === 'fixed' || choice.pricing_type === 'none') {
+                        addonTotal += amount
+                    }
+                }
+            })
+        })
+
+        const basePrice = parseFloat(currentPrice) || 0
+        const totalPrice = parseFloat((basePrice + addonTotal).toFixed(2))
+
         const result = addToCart({
             name: product.name,
             product_id: product.id,
             variation_id: variationId,
             quantity: 1,
-            total_price: parseFloat(currentPrice) || 0,
+            total_price: totalPrice,
             image_url: product.images?.[0]?.src || '',
             permalink: `/products/${product.slug}`,
             variation_description: variationDescription,
@@ -207,8 +223,24 @@ function SingleProduct() {
                     try {
                         const vars = await fetchProductVariations(data.id)
                         setVariations(vars)
-                        setCurrentPrice(data.price)
-                        setCurrentRegularPrice(data.regular_price || null)
+
+                        // Auto-select the first variation's Size so the initial
+                        // price matches what's shown in the dropdown
+                        if (vars.length > 0) {
+                            const firstVar = vars[0]
+                            setCurrentPrice(firstVar.price)
+                            setCurrentRegularPrice(firstVar.regular_price || null)
+
+                            // Pre-select attributes from the first variation
+                            const preSelected = {}
+                            firstVar.attributes.forEach((a) => {
+                                preSelected[a.name] = a.option
+                            })
+                            setSelectedAttributes(preSelected)
+                        } else {
+                            setCurrentPrice(data.price)
+                            setCurrentRegularPrice(data.regular_price || null)
+                        }
                     } catch {
                         setCurrentPrice(data.price)
                         setCurrentRegularPrice(data.regular_price || null)
