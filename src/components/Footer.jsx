@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Phone, Clock, Mail, MapPin, ChevronDown, ChevronUp } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
-import logo from '../assets/fancy_logo_v3.png';
+import logo from '../assets/fancy_logo.jpeg';
 
 const quickLinks = [
   { to: '/about', label: 'About Us' },
@@ -54,7 +54,7 @@ function Footer() {
           {/* Brand + Contact — always visible */}
           <div className="py-6 md:py-0 border-b border-amber-900 md:border-none space-y-4">
             <Link to="/" className="flex items-center gap-3">
-              <img src={logo} alt="Fancy Cakes Patisserie" className="h-12 w-12 rounded-xl shadow-md shrink-0" />
+              <img src={logo} alt="Fancy Cakes Patisserie" className="h-12 w-12 rounded-lg object-contain bg-white p-0.5 shadow-md shrink-0" />
               <span className="text-base font-bold text-white leading-tight">FANCY CAKES<br />PATISSERIE</span>
             </Link>
 

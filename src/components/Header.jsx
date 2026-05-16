@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { Search, ShoppingBag, User, Menu, X, Heart, Phone, Mail, LogOut, ChevronDown } from 'lucide-react';
-import logo from '../assets/fancy_logo_v3.png';
+import logo from '../assets/fancy_logo.jpeg';
 import { Link, useNavigate } from 'react-router-dom';
 import { fetchSearchSuggestions } from '../services/woocommerce';
 import { getCartCount, clearCart } from '../utils/cart';
@@ -177,7 +177,7 @@ function Header() {
 
             <Link to="/" className="flex items-center gap-2 min-w-0">
               <img src={logo} alt="Fancy Cakes Patisserie"
-                className="h-10 w-10 sm:h-12 sm:w-12 rounded-xl shadow-sm shrink-0" />
+                className="h-10 w-10 sm:h-12 sm:w-12 rounded-lg object-contain shadow-sm shrink-0 bg-white p-0.5" />
               <span className="hidden sm:block text-base md:text-xl font-bold text-amber-950 leading-tight truncate">
                 FANCY CAKES PATISSERIE
               </span>
