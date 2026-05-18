@@ -54,7 +54,7 @@ function Footer() {
           {/* Brand + Contact — always visible */}
           <div className="py-6 md:py-0 border-b border-amber-900 md:border-none space-y-4">
             <Link to="/" className="flex items-center gap-3">
-              <img src={logo} alt="Fancy Cakes Patisserie" className="h-12 w-12 rounded-lg object-contain bg-white p-0.5 shadow-md shrink-0" />
+              <img src={logo} alt="Fancy Cakes Patisserie" className="h-16 w-16 rounded-xl object-contain bg-white p-0.5 shadow-md shrink-0" />
               <span className="text-base font-bold text-white leading-tight">FANCY CAKES<br />PATISSERIE</span>
             </Link>
 

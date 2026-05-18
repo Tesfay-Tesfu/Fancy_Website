@@ -1,8 +1,8 @@
 import { MapPin, Phone, Mail, Clock, ExternalLink } from 'lucide-react'
+import DeliveryZoneMap from './DeliveryZoneMap'
 
-const ADDRESS   = '9332 Georgia Avenue, Silver Spring, MD 20910'
-const MAPS_URL  = 'https://www.google.com/maps/search/?api=1&query=9332+Georgia+Avenue+Silver+Spring+MD+20910'
-const EMBED_URL = 'https://maps.google.com/maps?q=9332+Georgia+Avenue,+Silver+Spring,+MD+20910&t=&z=15&ie=UTF8&iwloc=&output=embed'
+const ADDRESS  = '9332 Georgia Avenue, Silver Spring, MD 20910'
+const MAPS_URL = 'https://www.google.com/maps/search/?api=1&query=9332+Georgia+Avenue+Silver+Spring+MD+20910'
 
 const info = [
   {
@@ -26,7 +26,7 @@ const info = [
   {
     icon: Clock,
     label: 'Hours',
-    value: 'Monday: Closed, Tue–Sat 10am–7pm , Sunday 11am–6pm',
+    value: 'Monday: Closed · Tue–Sat 10am–7pm · Sunday 11am–6pm',
     href: null,
   },
 ]
@@ -37,40 +37,16 @@ export default function LocationMap() {
 
       {/* Section header */}
       <div className="mb-6">
-        <h2 className="text-2xl font-bold text-slate-900">Find Us</h2>
+        <h2 className="text-2xl font-bold text-slate-900">Find Us & Delivery Areas</h2>
         <p className="mt-1 text-sm text-slate-500">
-          Visit our bakery or place your order online for delivery.
+          Visit our bakery or check if we deliver to your ZIP code.
         </p>
       </div>
 
       <div className="grid gap-6 lg:grid-cols-[1fr_320px]">
 
-        {/* Map embed */}
-        <div className="relative overflow-hidden rounded-3xl border border-slate-200 shadow-md bg-slate-100 min-h-[320px]">
-          <iframe
-            title="Fancy Cakes Patisserie location"
-            src={EMBED_URL}
-            width="100%"
-            height="100%"
-            style={{ border: 0, minHeight: '320px' }}
-            allowFullScreen
-            loading="lazy"
-            referrerPolicy="no-referrer-when-downgrade"
-            className="w-full h-full absolute inset-0"
-          />
-
-          {/* Open in Google Maps button */}
-          <a
-            href={MAPS_URL}
-            target="_blank"
-            rel="noreferrer"
-            className="absolute bottom-4 right-4 flex items-center gap-1.5 rounded-full bg-white px-4 py-2
-              text-xs font-semibold text-slate-700 shadow-md hover:bg-amber-600 hover:text-white transition z-10"
-          >
-            <ExternalLink size={12} />
-            Open in Maps
-          </a>
-        </div>
+        {/* Interactive delivery zone map */}
+        <DeliveryZoneMap />
 
         {/* Info cards */}
         <div className="flex flex-col gap-4">
@@ -107,6 +83,16 @@ export default function LocationMap() {
           >
             <MapPin size={16} />
             Get Directions
+          </a>
+
+          {/* Delivery page link */}
+          <a
+            href="/delivery"
+            className="flex items-center justify-center gap-2 rounded-2xl border border-amber-300 px-5 py-3
+              text-sm font-semibold text-amber-700 hover:bg-amber-50 transition"
+          >
+            <ExternalLink size={15} />
+            View Full Delivery Map
           </a>
         </div>
       </div>

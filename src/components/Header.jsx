@@ -177,7 +177,7 @@ function Header() {
 
             <Link to="/" className="flex items-center gap-2 min-w-0">
               <img src={logo} alt="Fancy Cakes Patisserie"
-                className="h-10 w-10 sm:h-12 sm:w-12 rounded-lg object-contain shadow-sm shrink-0 bg-white p-0.5" />
+                className="h-14 w-14 sm:h-16 sm:w-16 rounded-xl object-contain shadow-sm shrink-0 bg-white p-0.5" />
               <span className="hidden sm:block text-base md:text-xl font-bold text-amber-950 leading-tight truncate">
                 FANCY CAKES PATISSERIE
               </span>
